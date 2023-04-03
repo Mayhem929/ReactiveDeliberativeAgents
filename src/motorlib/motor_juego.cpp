@@ -267,7 +267,7 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
           monitor.setMostrarResultados(true);
           break;
         case 'X': // Casilla Rosa (Recarga)
-          monitor.get_entidad(0)->increaseBateria(10);
+          //monitor.get_entidad(0)->increaseBateria(10);
           monitor.get_entidad(1)->setPosicion(x, y);
           out = true;
           break;
@@ -393,7 +393,7 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
     case actIDLE:
       if (celda == 'X')
       { // Casilla Rosa (Recarga)
-        monitor.get_entidad(0)->increaseBateria(10);
+        //monitor.get_entidad(0)->increaseBateria(10);
       }
 
       out = true;

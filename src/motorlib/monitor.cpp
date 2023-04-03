@@ -485,9 +485,6 @@ string strAccion(int accion)
     out = "actSON_TURN_SR";
     break;
   case 9:
-    out = "actSON_WHEREIS";
-    break;
-  case 10:
     out = "actIDLE";
     break;
   }
