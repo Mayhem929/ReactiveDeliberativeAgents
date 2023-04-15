@@ -102,7 +102,7 @@ class ComportamientoJugador : public Comportamiento {
     list<Action> plan;    // Almacena el plan de ejecución
     bool hayPlan;         // Si true indica que se está siguiendo un plan
     ubicacion goal;
-    stateN0 c_state;
+    stateN1 c_state;
     // Funciones privadas
 
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);

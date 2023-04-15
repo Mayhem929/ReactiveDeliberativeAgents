@@ -18,11 +18,43 @@ void Initialize(const Sensores &sensores, stateN0 &c_state) {
 	c_state.sonambulo.brujula = sensores.SONsentido;
 }
 
-bool SonambuloEnVision(const vector<unsigned char> superficie){
-	for (int i = 0; i < superficie.size(); i++)
-		if(superficie[i] == 's')
-			return true;
+bool SonambuloEnVision(stateN0 st) {
 	
+	int i = st.jugador.f; int j = st.jugador.c;
+	int f = st.sonambulo.f; int c = st.sonambulo.c;
+	int add;
+	int radio = 4;
+	Orientacion o = st.jugador.brujula;
+
+	switch(o){
+		case este:	 	
+		case sur: 		add= 1;		break;
+		case norte: 	
+		case oeste: 	add=-1;		break;
+	}
+
+	if(o == norte or o == sur){
+		for (int k=0; k < radio; k++){
+			for(int l=k*k; l < (k+1)*(k+1); l++){
+				if (i == f && j == c) return true;
+				j-=add;
+			}
+			j+= 2*(k+1)*add;
+			i+=add;
+		}
+	}
+
+	else if(o == este or o == oeste){
+		for (int k=0; k < radio; k++){
+			for(int l=k*k; l < (k+1)*(k+1); l++){
+				if(i == f && j == c) return true;
+				i+=add;
+			}
+			i-= 2*(k+1)*add;
+			j+=add;
+		}
+	}
+
 	return false;
 }
 
@@ -83,7 +115,7 @@ stateN0 apply(const Action &a, const stateN0 &st, const vector<vector<unsigned c
   switch (a){
   case actFORWARD: // si casilla delante es transitable y no está ocupada por el sonámbulo
     sig_ubicacion = NextCasilla(st.jugador);
-    if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion == st.sonambulo)){
+    if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f && sig_ubicacion.c == st.sonambulo.c)){
       st_result.jugador = sig_ubicacion;
     }
     break;
@@ -98,7 +130,9 @@ stateN0 apply(const Action &a, const stateN0 &st, const vector<vector<unsigned c
   return st_result;
 }
 
-
+/** Devuelve el estado que se genera si el agente puede avanzar.
+ * Si no puede avanzar, se devuelve como salida el mismo estado de entrada.
+ */
 stateN1 apply(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> &mapa)
 {
   stateN1 st_result = st;
@@ -106,7 +140,7 @@ stateN1 apply(const Action &a, const stateN1 &st, const vector<vector<unsigned c
   switch (a){
   case actFORWARD: // si casilla delante es transitable y no está ocupada por el sonámbulo
 	sig_ubicacion = NextCasilla(st.jugador);
-	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion == st.sonambulo)){
+	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f && sig_ubicacion.c == st.sonambulo.c)){
 	  st_result.jugador = sig_ubicacion;
 	}
 	break;
@@ -119,7 +153,7 @@ stateN1 apply(const Action &a, const stateN1 &st, const vector<vector<unsigned c
 	break;
   case actSON_FORWARD: // si casilla delante es transitable y no está ocupada por el jugador
 	sig_ubicacion = NextCasilla(st.sonambulo);
-	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion == st.jugador)){
+	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.jugador.f && sig_ubicacion.c == st.jugador.c)){
 	  st_result.sonambulo = sig_ubicacion;
 	}
 	break;
@@ -237,65 +271,91 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 	return plan;
 }
 
-// // Calcula el plan para el nivel 1
-// list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
-// 							const vector<vector<unsigned char>> &mapa) {
-// 	nodeN1 current_node;
-// 	list<nodeN1> frontier;
-// 	set<nodeN1> explored;
-// 	list<Action> plan;
-// 	current_node.st = inicio;
-// 	bool SolutionFound = (current_node.st.jugador.f==final.f &&
-// 							current_node.st.jugador.c==final.c);
-// 	frontier.push_back(current_node);
+// Calcula el plan para el nivel 1
+list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
+							const vector<vector<unsigned char>> &mapa) {
+	nodeN1 current_node;
+	list<nodeN1> frontier;
+	set<nodeN1> explored;
+	list<Action> plan;
+	current_node.st = inicio;
+	bool SolutionFound = (current_node.st.sonambulo.f==final.f &&
+							current_node.st.sonambulo.c==final.c);
+	frontier.push_back(current_node);
 
-// 	while (!frontier.empty() && !SolutionFound) {
-// 		frontier.pop_front();
-// 		explored.insert(current_node);
+	while (!frontier.empty() && !SolutionFound) {
+		frontier.pop_front();
+		explored.insert(current_node);
+		bool son_en_vision = SonambuloEnVision(current_node.st);
+		// Generar hijo actSON_FORWARD
+		if(son_en_vision){
+			nodeN1 child_son_forward = current_node;
+			child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
+			if (child_son_forward.st.sonambulo.f==final.f && child_son_forward.st.sonambulo.c==final.c) {
+				child_son_forward.secuencia.push_back(actSON_FORWARD);
+				current_node = child_son_forward;
+				SolutionFound = true;
+			} else if (explored.find(child_son_forward)==explored.end()) {
+				child_son_forward.secuencia.push_back(actSON_FORWARD);
+				frontier.push_back(child_son_forward);
+			}
+		}
 
-// 		// Generar hijo actFORWARD
-// 		nodeN0 child_forward = current_node;
-// 		child_forward.st = apply(actFORWARD, current_node.st, mapa);
-// 		if (child_forward.st.jugador.f==final.f && child_forward.st.jugador.c==final.c) {
-// 			child_forward.secuencia.push_back(actFORWARD);
-// 			current_node = child_forward;
-// 			SolutionFound = true;
-// 		} else if (explored.find(child_forward)==explored.end()) {
-// 			child_forward.secuencia.push_back(actFORWARD);
-// 			frontier.push_back(child_forward);
-// 		}
+		if (!SolutionFound) {
+			// Generar hijo actFORWARD
+			nodeN1 child_forward = current_node;
+			child_forward.st = apply(actFORWARD, current_node.st, mapa);
+			if (explored.find(child_forward)==explored.end()) {
+				child_forward.secuencia.push_back(actFORWARD);
+				frontier.push_back(child_forward);
+			}
+			// Generar hijo actTURN_L
+			nodeN1 child_turnl = current_node;
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			if (explored.find(child_turnl)==explored.end()){
+				child_turnl.secuencia.push_back(actTURN_L);
+				frontier.push_back(child_turnl);
+			}
+			// Generar hijo actTURN_R
+			nodeN1 child_turnr = current_node;
+			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			if (explored.find(child_turnr)==explored.end()){
+				child_turnr.secuencia.push_back(actTURN_R);
+				frontier.push_back(child_turnr);
+			}
+			if(son_en_vision){
+				// Generar hijo actSON_TURN_L
+				nodeN1 child_son_turnl = current_node;
+				child_son_turnl.st = apply(actSON_TURN_SL, current_node.st, mapa);
+				if (explored.find(child_son_turnl)==explored.end()){
+					child_son_turnl.secuencia.push_back(actSON_TURN_SL);
+					frontier.push_back(child_son_turnl);
+				}
+				// Generar hijo actSON_TURN_R
+				nodeN1 child_son_turnr = current_node;
+				child_son_turnr.st = apply(actSON_TURN_SR, current_node.st, mapa);
+				if (explored.find(child_son_turnr)==explored.end()){
+					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
+					frontier.push_back(child_son_turnr);
+				}
+			}
 
-// 		if (!SolutionFound) {
-// 			// Generar hijo actTURN_L
-// 			nodeN0 child_turnl = current_node;
-// 			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
-// 			if (explored.find(child_turnl)==explored.end()){
-// 				child_turnl.secuencia.push_back(actTURN_L);
-// 				frontier.push_back(child_turnl);
-// 			}
-// 			// Generar hijo actTURN_R
-// 			nodeN0 child_turnr = current_node;
-// 			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
-// 			if (explored.find(child_turnr)==explored.end()){
-// 				child_turnr.secuencia.push_back(actTURN_R);
-// 				frontier.push_back(child_turnr);
-// 			}
-// 		}
+		}
 
-// 		if (!SolutionFound && !frontier.empty()){
-// 			current_node = frontier.front();
-// 			while (!frontier.empty() && explored.find(current_node)!=explored.end()) {
-// 				frontier.pop_front();
-// 				current_node = frontier.front();
-// 			}
-// 		}
-// 	}
+		if (!SolutionFound && !frontier.empty()){
+			current_node = frontier.front();
+			while (!frontier.empty() && explored.find(current_node)!=explored.end()) {
+				frontier.pop_front();
+				current_node = frontier.front();
+			}
+		}
+	}
 
-//   	if (SolutionFound)
-// 		plan = current_node.secuencia;
+  	if (SolutionFound)
+		plan = current_node.secuencia;
 	
-// 	return plan;
-// }
+	return plan;
+}
 
 // Este es el método principal que se piden en la practica.
 // Tiene como entrada la información de los sensores y devuelve la acción a realizar.
@@ -315,17 +375,31 @@ Action ComportamientoJugador::think(Sensores sensores)
 		c_state.sonambulo.c = sensores.SONposC;
 		c_state.sonambulo.brujula = sensores.SONsentido;
 		goal.f = sensores.destinoF;
-		goal.c = sensores.destinoC;
-
-		plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
+		goal.c = sensores.destinoC;	
+		
+		// mapaResultado[-1][-1] = 'X';
+		switch (sensores.nivel)
+		{
+		case 0:
+			plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
+			break;
+		case 1:
+			plan = AnchuraNivel1(c_state, goal, mapaResultado);
+			break;
+		default:
+			break;
+		}
 		VisualizaPlan(c_state,plan);
 		hayPlan = true;
 	}
 
 	if (hayPlan and plan.size()>0){
-		cout << "Ejecutando siguietne acción del plan" << endl;
+		cout << "Ejecutando siguiente acción del plan" << endl;
 		accion = plan.front();
+		c_state = apply(accion, c_state, mapaResultado);
 		plan.pop_front();
+		if(SonambuloEnVision(c_state))
+			cout << "Sonambulo en vision!!!11!1!!" << endl;
 	}
 
 	if (plan.size()== 0){
