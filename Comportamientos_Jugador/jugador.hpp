@@ -42,11 +42,6 @@ class nodeN0 {
       padre = n.padre;
     }
 
-    ~nodeN0() {
-      padre = nullptr;
-      delete padre;
-    }
-
     nodeN0(nodeN0* n) {
       st = n->st;
       accion = n->accion;
@@ -88,7 +83,8 @@ class nodeN0 {
 class nodeN1{
   public:
     stateN1 st;
-    list<Action> secuencia;
+    Action accion;
+    shared_ptr<nodeN1> padre;
 
     bool operator==(const nodeN1 &n) const {
       return (st==n.st);
