@@ -4,6 +4,7 @@
 #include "comportamientos/comportamiento.hpp"
 
 #include <list>
+#include <memory>
 
 class stateN0 {
   public:
@@ -29,7 +30,7 @@ class nodeN0 {
   public:
     stateN0 st;
     Action accion;
-    nodeN0 *padre;
+    shared_ptr<nodeN0> padre;
 
     nodeN0(){
       padre = nullptr;

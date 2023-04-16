@@ -216,8 +216,8 @@ void ComportamientoJugador::VisualizaPlan(const stateN0 &st, const list<Action> 
 list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 							const vector<vector<unsigned char>> &mapa) {
 	
-	list<nodeN0*> frontier;
-	set<nodeN0*> explored;
+	list<nodeN0> frontier;
+	set<nodeN0> explored;
 	list<Action> plan;
 	
 	nodeN0* current_node = new nodeN0();
