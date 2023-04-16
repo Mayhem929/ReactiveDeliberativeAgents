@@ -28,8 +28,36 @@ class stateN1 : public stateN0 {
 class nodeN0 {
   public:
     stateN0 st;
-    list<Action> secuencia;
+    Action accion;
+    nodeN0 *padre;
 
+    nodeN0(){
+      padre = nullptr;
+    }
+
+    nodeN0(const nodeN0& n) {
+      st = n.st;
+      accion = n.accion;
+      padre = n.padre;
+    }
+
+    ~nodeN0() {
+      padre = nullptr;
+      delete padre;
+    }
+
+    nodeN0(nodeN0* n) {
+      st = n->st;
+      accion = n->accion;
+      padre = n->padre;
+    }
+
+    void operator=(const nodeN0 &n) {
+      st = n.st;
+      accion = n.accion;
+      padre = n.padre;
+    }
+    
     bool operator==(const nodeN0 &n) const {
       return (st==n.st);
     }
@@ -39,6 +67,16 @@ class nodeN0 {
           (st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c) ||
           (st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
                   && st.jugador.brujula<n.st.jugador.brujula)) {
+        return true;
+      } else
+        return false;
+    }
+
+    bool operator<(nodeN0* n) const {
+      if ((st.jugador.f<n->st.jugador.f)|| 
+          (st.jugador.f==n->st.jugador.f && st.jugador.c<n->st.jugador.c) ||
+          (st.jugador.f==n->st.jugador.f && st.jugador.c==n->st.jugador.c
+                  && st.jugador.brujula<n->st.jugador.brujula)) {
         return true;
       } else
         return false;

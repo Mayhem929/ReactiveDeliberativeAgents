@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include <stack>
+#include<unistd.h>
 
 using namespace std;
 
@@ -214,13 +215,17 @@ void ComportamientoJugador::VisualizaPlan(const stateN0 &st, const list<Action> 
 // Calcula el plan para el nivel 0
 list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 							const vector<vector<unsigned char>> &mapa) {
-	nodeN0 current_node;
-	list<nodeN0> frontier;
-	set<nodeN0> explored;
+	
+	list<nodeN0*> frontier;
+	set<nodeN0*> explored;
 	list<Action> plan;
-	current_node.st = inicio;
-	bool SolutionFound = (current_node.st.jugador.f==final.f &&
-							current_node.st.jugador.c==final.c);
+	
+	nodeN0* current_node = new nodeN0();
+	current_node->st = inicio;
+
+	bool SolutionFound = (current_node->st.jugador.f==final.f &&
+							current_node->st.jugador.c==final.c);
+
 	frontier.push_back(current_node);
 
 	while (!frontier.empty() && !SolutionFound) {
@@ -228,46 +233,52 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 		explored.insert(current_node);
 
 		// Generar hijo actFORWARD
-		nodeN0 child_forward = current_node;
-		child_forward.st = apply(actFORWARD, current_node.st, mapa);
-		if (child_forward.st.jugador.f==final.f && child_forward.st.jugador.c==final.c) {
-			child_forward.secuencia.push_back(actFORWARD);
+		nodeN0* child_forward = new nodeN0();
+		child_forward->padre = current_node;
+		child_forward->st = apply(actFORWARD, current_node->st, mapa);
+		if (child_forward->st.jugador.f==final.f && child_forward->st.jugador.c==final.c) {
+			child_forward->accion = actFORWARD;
 			current_node = child_forward;
 			SolutionFound = true;
-		} else if (explored.find(child_forward)==explored.end()) {
-			child_forward.secuencia.push_back(actFORWARD);
+		} else if (explored.find((child_forward))==explored.end()) {
+			child_forward->accion = actFORWARD;
 			frontier.push_back(child_forward);
 		}
-
+		
 		if (!SolutionFound) {
 			// Generar hijo actTURN_L
-			nodeN0 child_turnl = current_node;
-			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			nodeN0 *child_turnl = new nodeN0();
+			child_turnl->padre = current_node;
+			child_turnl->st = apply(actTURN_L, current_node->st, mapa);
 			if (explored.find(child_turnl)==explored.end()){
-				child_turnl.secuencia.push_back(actTURN_L);
+				child_turnl->accion = actTURN_L;
 				frontier.push_back(child_turnl);
 			}
 			// Generar hijo actTURN_R
-			nodeN0 child_turnr = current_node;
-			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			nodeN0 *child_turnr = new nodeN0();
+			child_turnr->padre = current_node;
+			child_turnr->st = apply(actTURN_R, current_node->st, mapa);
 			if (explored.find(child_turnr)==explored.end()){
-				child_turnr.secuencia.push_back(actTURN_R);
+				child_turnr->accion = actTURN_R;
 				frontier.push_back(child_turnr);
 			}
 		}
 
 		if (!SolutionFound && !frontier.empty()){
-			current_node = frontier.front();
+			current_node = (frontier.front());
 			while (!frontier.empty() && explored.find(current_node)!=explored.end()) {
 				frontier.pop_front();
-				current_node = frontier.front();
+				current_node = (frontier.front());
 			}
 		}
 	}
 
-  	if (SolutionFound)
-		plan = current_node.secuencia;
-	
+  	if (SolutionFound){
+		do {
+			plan.push_front(current_node->accion);
+			current_node = current_node->padre;
+		} while(current_node->padre != nullptr);
+	}
 	return plan;
 }
 
