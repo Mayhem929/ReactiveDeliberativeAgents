@@ -219,6 +219,8 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 	set<nodeN0> explored;
 	list<Action> plan;
 	current_node.st = inicio;
+
+	int n = 0;
 	bool SolutionFound = (current_node.st.jugador.f==final.f &&
 							current_node.st.jugador.c==final.c);
 	frontier.push_back(current_node);
@@ -226,7 +228,7 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 	while (!frontier.empty() && !SolutionFound) {
 		frontier.pop_front();
 		explored.insert(current_node);
-
+		cout << "Nodos explorados: " << ++n << endl;
 		// Generar hijo actFORWARD
 		nodeN0 child_forward = current_node;
 		child_forward.st = apply(actFORWARD, current_node.st, mapa);
@@ -279,6 +281,7 @@ list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
 	set<nodeN1> explored;
 	list<Action> plan;
 	current_node.st = inicio;
+	int n = 0;
 	bool SolutionFound = (current_node.st.sonambulo.f==final.f &&
 							current_node.st.sonambulo.c==final.c);
 	frontier.push_back(current_node);
@@ -286,6 +289,10 @@ list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
 	while (!frontier.empty() && !SolutionFound) {
 		frontier.pop_front();
 		explored.insert(current_node);
+		n++;
+
+		if(n%5000 == 0) cout << "Nodos explorados: " << n << endl;
+
 		bool son_en_vision = SonambuloEnVision(current_node.st);
 		// Generar hijo actSON_FORWARD
 		if(son_en_vision){
@@ -295,6 +302,7 @@ list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
 				child_son_forward.secuencia.push_back(actSON_FORWARD);
 				current_node = child_son_forward;
 				SolutionFound = true;
+				cout << "Nodos explorados: " << n << endl;
 			} else if (explored.find(child_son_forward)==explored.end()) {
 				child_son_forward.secuencia.push_back(actSON_FORWARD);
 				frontier.push_back(child_son_forward);
@@ -396,10 +404,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 	if (hayPlan and plan.size()>0){
 		cout << "Ejecutando siguiente acción del plan" << endl;
 		accion = plan.front();
-		c_state = apply(accion, c_state, mapaResultado);
 		plan.pop_front();
-		if(SonambuloEnVision(c_state))
-			cout << "Sonambulo en vision!!!11!1!!" << endl;
 	}
 
 	if (plan.size()== 0){
