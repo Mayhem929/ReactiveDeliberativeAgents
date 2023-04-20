@@ -228,12 +228,16 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final,
 	while (!frontier.empty() && !SolutionFound) {
 		frontier.pop_front();
 		explored.insert(current_node);
-		cout << "Nodos explorados: " << ++n << endl;
+		
+		n++;
+		if(n%10000==0)
+			cout << "Nodos explorados: " << n << endl;
 		// Generar hijo actFORWARD
 		nodeN0 child_forward = current_node;
 		child_forward.st = apply(actFORWARD, current_node.st, mapa);
 		if (child_forward.st.jugador.f==final.f && child_forward.st.jugador.c==final.c) {
 			child_forward.secuencia.push_back(actFORWARD);
+			cout << "Nodos explorados: " << n << endl;
 			current_node = child_forward;
 			SolutionFound = true;
 		} else if (explored.find(child_forward)==explored.end()) {
@@ -291,7 +295,7 @@ list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
 		explored.insert(current_node);
 		n++;
 
-		if(n%5000 == 0) cout << "Nodos explorados: " << n << endl;
+		if(n%10000 == 0) cout << "Nodos explorados: " << n << endl;
 
 		bool son_en_vision = SonambuloEnVision(current_node.st);
 		// Generar hijo actSON_FORWARD
