@@ -24,6 +24,16 @@ class stateN1 : public stateN0 {
     }
 };
 
+class stateN2 : public stateN1 {
+  public:
+    bool bikini;
+    bool zapatillas;
+    bool bateria;
+
+    bool operator== (const stateN2 &x) const {
+      return (jugador==x.jugador && sonambulo==x.sonambulo);
+    }
+};
 
 /** Definición del tipo nodo para el nivel 0*/
 class nodeN0 {
@@ -31,28 +41,6 @@ class nodeN0 {
     stateN0 st;
     Action accion;
     shared_ptr<nodeN0> padre;
-
-    nodeN0(){
-      padre = nullptr;
-    }
-
-    nodeN0(const nodeN0& n) {
-      st = n.st;
-      accion = n.accion;
-      padre = n.padre;
-    }
-
-    nodeN0(nodeN0* n) {
-      st = n->st;
-      accion = n->accion;
-      padre = n->padre;
-    }
-
-    void operator=(const nodeN0 &n) {
-      st = n.st;
-      accion = n.accion;
-      padre = n.padre;
-    }
     
     bool operator==(const nodeN0 &n) const {
       return (st==n.st);
@@ -100,6 +88,38 @@ class nodeN1{
           (st.sonambulo.f==n.st.sonambulo.f && st.sonambulo.c<n.st.sonambulo.c) ||
           (st.sonambulo.f==n.st.sonambulo.f && st.sonambulo.c==n.st.sonambulo.c
                   && st.sonambulo.brujula<n.st.sonambulo.brujula)))) {
+        return true;
+      } else
+        return false;
+    }
+};
+
+class nodeN2{
+  public:
+    stateN2 st;
+    Action accion;
+    shared_ptr<nodeN2> padre;
+
+    bool operator==(const nodeN2 &n) const {
+      return (st==n.st);
+    }
+
+    bool operator<(const nodeN2 &n) const {
+      if (((st.jugador.f<n.st.jugador.f)|| 
+          (st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c) ||
+          (st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
+                  && st.jugador.brujula<n.st.jugador.brujula)) ||
+          (st.jugador == n.st.jugador &&
+          ((st.sonambulo.f<n.st.sonambulo.f)||
+          (st.sonambulo.f==n.st.sonambulo.f && st.sonambulo.c<n.st.sonambulo.c) ||
+          (st.sonambulo.f==n.st.sonambulo.f && st.sonambulo.c==n.st.sonambulo.c
+                  && st.sonambulo.brujula<n.st.sonambulo.brujula))) ||
+          (st.jugador == n.st.jugador && st.sonambulo == n.st.sonambulo && 
+          st.bateria<n.st.bateria)||
+          (st.jugador == n.st.jugador && st.sonambulo == n.st.sonambulo && 
+          st.bateria == n.st.bateria && st.zapatillas<n.st.zapatillas) ||
+          (st.jugador == n.st.jugador && st.sonambulo == n.st.sonambulo &&
+          st.zapatillas==n.st.zapatillas && st.bateria == n.st.bateria && st.bikini < n.st.bikini)) {
         return true;
       } else
         return false;

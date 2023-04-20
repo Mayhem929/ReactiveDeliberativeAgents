@@ -374,7 +374,8 @@ list<Action> AnchuraSoloJugador(const stateN1 &inicio, const ubicacion &final,
 				child_turnr.accion = actTURN_R;
 				frontier.push_back(child_turnr);
 			}
-			if(son_en_vision){
+			// if(son_en_vision){
+			if(false){
 				// Generar hijo actSON_FORWARD
 				nodeN1 child_son_forward;
 				child_son_forward.padre = make_shared<nodeN1>(current_node);
