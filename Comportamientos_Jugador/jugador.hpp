@@ -30,9 +30,21 @@ class stateN2 : public stateN1 {
   public:
     bool bikini;
     bool zapatillas;
-    int bateria;
+    int coste;
 
     bool operator== (const stateN2 &x) const {
+      return (jugador==x.jugador && sonambulo==x.sonambulo);
+    }
+};
+
+class stateN3 : public stateN2 {
+  public:
+    bool bikini_son;
+    bool zapatillas_son;
+    int heuristica;
+    int suma;
+
+    bool operator== (const stateN3 &x) const {
       return (jugador==x.jugador && sonambulo==x.sonambulo);
     }
 };
@@ -96,6 +108,7 @@ class nodeN1{
     }
 };
 
+/** Definición del tipo nodo para el nivel 2*/
 class nodeN2{
   public:
     stateN2 st;
@@ -106,34 +119,77 @@ class nodeN2{
       return (st==n.st);
     }
 
+
+    // Decidir si un nodo es mejor que otro
     bool operator<(const nodeN2 &n) const {
-      if (st.bateria < n.st.bateria) 
+      if (st.coste > n.st.coste)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador.f<n.st.jugador.f)
+      else if (st.coste == n.st.coste && st.jugador.f<n.st.jugador.f)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c)
+      else if (st.coste == n.st.coste && st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
+      else if (st.coste == n.st.coste && st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
                   && st.jugador.brujula<n.st.jugador.brujula)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo.f<n.st.sonambulo.f)
+      else if (st.coste == n.st.coste && st.jugador == n.st.jugador && st.sonambulo.f<n.st.sonambulo.f)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+      else if (st.coste == n.st.coste && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
                   && st.sonambulo.c<n.st.sonambulo.c)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+      else if (st.coste == n.st.coste && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
                   && st.sonambulo.c==n.st.sonambulo.c && st.sonambulo.brujula<n.st.sonambulo.brujula)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+      else if (st.coste == n.st.coste && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
                   && st.zapatillas<n.st.zapatillas)
         return true;
-      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+      else if (st.coste == n.st.coste && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
                   && st.zapatillas==n.st.zapatillas && st.bikini<n.st.bikini)
         return true;
       else
         return false;
     }
 };
+
+/** Definición del tipo nodo para el nivel 3*/
+class nodeN3{
+  public:
+    stateN3 st;
+    Action accion;
+    shared_ptr<nodeN3> padre;
+
+    bool operator==(const nodeN3 &n) const {
+      return (st==n.st);
+    }
+
+    bool operator<(const nodeN3 &n) const {
+      if (st.suma > n.st.suma) 
+        return true;
+      else if (st.suma == n.st.suma && st.jugador.f<n.st.jugador.f)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
+                  && st.jugador.brujula<n.st.jugador.brujula)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador == n.st.jugador && st.sonambulo.f<n.st.sonambulo.f)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c<n.st.sonambulo.c)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c==n.st.sonambulo.c && st.sonambulo.brujula<n.st.sonambulo.brujula)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas<n.st.zapatillas)
+        return true;
+      else if (st.suma == n.st.suma && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas==n.st.zapatillas && st.bikini<n.st.bikini)
+        return true;
+      else
+        return false;
+    }
+};
+
 
 class ComportamientoJugador : public Comportamiento {
   public:
@@ -145,9 +201,12 @@ class ComportamientoJugador : public Comportamiento {
       c_state.sonambulo.f = size;
       c_state.sonambulo.c = size;
       c_state.sonambulo.brujula = norte;
-      c_state.bateria = 3000;
+      c_state.coste = 0;
       c_state.bikini = false;
       c_state.zapatillas = false;
+      c_state.bikini_son = false;
+      c_state.zapatillas_son = false;
+
       goal.f = size;
       goal.c = size;
       hayPlan = false;
@@ -169,7 +228,7 @@ class ComportamientoJugador : public Comportamiento {
     list<Action> plan;    // Almacena el plan de ejecución
     bool hayPlan;         // Si true indica que se está siguiendo un plan
     ubicacion goal;
-    stateN2 c_state;
+    stateN3 c_state;
     // Funciones privadas
 
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
