@@ -4,7 +4,9 @@
 #include "comportamientos/comportamiento.hpp"
 
 #include <list>
+#include <queue>
 #include <memory>
+#include <limits>
 
 class stateN0 {
   public:
@@ -28,7 +30,7 @@ class stateN2 : public stateN1 {
   public:
     bool bikini;
     bool zapatillas;
-    bool bateria;
+    int bateria;
 
     bool operator== (const stateN2 &x) const {
       return (jugador==x.jugador && sonambulo==x.sonambulo);
@@ -105,23 +107,30 @@ class nodeN2{
     }
 
     bool operator<(const nodeN2 &n) const {
-      if (((st.jugador.f<n.st.jugador.f)|| 
-          (st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c) ||
-          (st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
-                  && st.jugador.brujula<n.st.jugador.brujula)) ||
-          (st.jugador == n.st.jugador &&
-          ((st.sonambulo.f<n.st.sonambulo.f)||
-          (st.sonambulo.f==n.st.sonambulo.f && st.sonambulo.c<n.st.sonambulo.c) ||
-          (st.sonambulo.f==n.st.sonambulo.f && st.sonambulo.c==n.st.sonambulo.c
-                  && st.sonambulo.brujula<n.st.sonambulo.brujula))) ||
-          (st.jugador == n.st.jugador && st.sonambulo == n.st.sonambulo && 
-          st.bateria<n.st.bateria)||
-          (st.jugador == n.st.jugador && st.sonambulo == n.st.sonambulo && 
-          st.bateria == n.st.bateria && st.zapatillas<n.st.zapatillas) ||
-          (st.jugador == n.st.jugador && st.sonambulo == n.st.sonambulo &&
-          st.zapatillas==n.st.zapatillas && st.bateria == n.st.bateria && st.bikini < n.st.bikini)) {
+      if (st.bateria < n.st.bateria) 
         return true;
-      } else
+      else if (st.bateria == n.st.bateria && st.jugador.f<n.st.jugador.f)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
+                  && st.jugador.brujula<n.st.jugador.brujula)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo.f<n.st.sonambulo.f)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c<n.st.sonambulo.c)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c==n.st.sonambulo.c && st.sonambulo.brujula<n.st.sonambulo.brujula)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas<n.st.zapatillas)
+        return true;
+      else if (st.bateria == n.st.bateria && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas==n.st.zapatillas && st.bikini<n.st.bikini)
+        return true;
+      else
         return false;
     }
 };
@@ -136,6 +145,9 @@ class ComportamientoJugador : public Comportamiento {
       c_state.sonambulo.f = size;
       c_state.sonambulo.c = size;
       c_state.sonambulo.brujula = norte;
+      c_state.bateria = 3000;
+      c_state.bikini = false;
+      c_state.zapatillas = false;
       goal.f = size;
       goal.c = size;
       hayPlan = false;
@@ -157,7 +169,7 @@ class ComportamientoJugador : public Comportamiento {
     list<Action> plan;    // Almacena el plan de ejecución
     bool hayPlan;         // Si true indica que se está siguiendo un plan
     ubicacion goal;
-    stateN1 c_state;
+    stateN2 c_state;
     // Funciones privadas
 
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
