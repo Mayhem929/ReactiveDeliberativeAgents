@@ -129,14 +129,6 @@ Action ComportamientoPerro::think(Sensores sensores)
     {
       accion = actTURN_SL;
     }
-    else if (sensores.superficie[1] == 'j' or sensores.superficie[4] == 'j' or sensores.superficie[9] == 'j')
-    {
-      accion = actTURN_SL;
-    }
-    else if (sensores.superficie[3] == 'j' or sensores.superficie[8] == 'j' or sensores.superficie[15] == 'j')
-    {
-      accion = actTURN_SR;
-    }
     else if (!delanteEsCasillaObjetivo and sensores.terreno[2] != 'P' and sensores.terreno[2] != 'M' and sensores.superficie[2] == '_')
     {
       if (sensores.superficie[6] == 'j' or sensores.superficie[12] == 'j')
@@ -148,6 +140,15 @@ Action ComportamientoPerro::think(Sensores sensores)
         accion = actFORWARD;
       }
     }
+    else if (sensores.superficie[1] == 'j' or sensores.superficie[4] == 'j' or sensores.superficie[9] == 'j')
+    {
+      accion = actTURN_SL;
+    }
+    else if (sensores.superficie[3] == 'j' or sensores.superficie[8] == 'j' or sensores.superficie[15] == 'j')
+    {
+      accion = actTURN_SR;
+    }
+
     if (accion == actIDLE)
     {
       int cual = aleatorio(20);
