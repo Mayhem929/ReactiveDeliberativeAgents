@@ -850,7 +850,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 				if(current_node.st.suma < solution_node.st.suma){
 					solution_node = current_node;	
 				}
-			} else if (it==explored.end() and it->st.suma < solution_node.st.suma) {
+			} else if (it==explored.end() and child_son_forward.st.suma < solution_node.st.suma) {
 				child_son_forward.accion = actSON_FORWARD;
 				frontier.push(child_son_forward);
 			}
@@ -879,7 +879,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 			
 			auto it = explored.find(child_forward);
 
-			if (it==explored.end() and it->st.suma < solution_node.st.suma) {
+			if (it==explored.end() and child_forward.st.suma < solution_node.st.suma) {
 				child_forward.accion = actFORWARD;
 				frontier.push(child_forward);
 			}
@@ -899,7 +899,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 
 			it = explored.find(child_turnl);
 
-			if (it==explored.end() and it->st.suma < solution_node.st.suma) {
+			if (it==explored.end() and child_turnl.st.suma < solution_node.st.suma) {
 				child_turnl.accion = actTURN_L;
 				frontier.push(child_turnl);
 			}
@@ -919,7 +919,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 			
 			it = explored.find(child_turnr);
 
-			if (it==explored.end() and it->st.suma < solution_node.st.suma) {
+			if (it==explored.end() and child_turnr.st.suma < solution_node.st.suma) {
 				child_turnr.accion = actTURN_R;
 				frontier.push(child_turnr);
 			}
@@ -941,7 +941,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 
 				it = explored.find(child_son_turnr);
 
-				if (it==explored.end() and it->st.suma < solution_node.st.suma) {
+				if (it==explored.end() and child_son_turnr.st.suma < solution_node.st.suma) {
 					child_son_turnr.accion = actSON_TURN_SR;
 					frontier.push(child_son_turnr);
 				}
@@ -961,7 +961,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 
 				it = explored.find(child_son_turnl);
 
-				if (it==explored.end() and it->st.suma < solution_node.st.suma) {
+				if (it==explored.end() and child_son_turnl.st.suma < solution_node.st.suma) {
 					child_son_turnl.accion = actSON_TURN_SL;
 					frontier.push(child_son_turnl);
 				}
@@ -977,10 +977,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 
 		if (!SolutionFound && !frontier.empty()){
 			current_node = frontier.top();
-			while (!frontier.empty() && explored.find(current_node)!=explored.end() && current_node.st.suma > solution_node.st.suma) {
-				if(current_node.st.suma > solution_node.st.suma){
-					explored.insert(current_node);
-				}
+			while (frontier.size() > 1 && (explored.find(current_node)!=explored.end() || current_node.st.suma > solution_node.st.suma)) {
 				
 				frontier.pop();
 				current_node = frontier.top();
@@ -989,13 +986,15 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 		}
 	}
 
-  	if (SolutionFound){
-		plan.push_front(solution_node.accion);
-		if(solution_node.padre != nullptr) do {
-			plan.push_front(solution_node.padre->accion);
-			solution_node.padre = solution_node.padre->padre;			
-		} while(solution_node.padre->padre != nullptr);
-	}
+	plan.push_front(solution_node.accion);
+	if(solution_node.padre != nullptr) do {
+		plan.push_front(solution_node.padre->accion);
+		solution_node.padre = solution_node.padre->padre;			
+	} while(solution_node.padre->padre != nullptr);
+	
+	cout << "Nodos explorados: " << n << endl;
+	cout << "Suma final: " << solution_node.st.suma << endl;
+	cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
 	
 	return plan;
 
