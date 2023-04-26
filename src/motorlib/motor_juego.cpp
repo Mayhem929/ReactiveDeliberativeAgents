@@ -38,6 +38,7 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
       {
       case 'M': // Muro
         monitor.get_entidad(0)->seAostio();
+        cout << "El jugador ha chocado con un muro\n";
         break;
       case 'P': // Precipicio
         cout << "Se cayó por un precipicio\n";
@@ -88,10 +89,19 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
         {
           monitor.put_active_objetivos(1);
           monitor.get_entidad(0)->anularAlcanzados();
-          monitor.get_entidad(0)->setObjetivos(monitor.get_active_objetivos());
           monitor.get_entidad(0)->incrMisiones();
           monitor.get_entidad(0)->incrPuntuacion(1);
+          for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+          {
+            monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+          }
         }
+        /*else if (monitor.getLevel() == 0 or monitor.getLevel() == 2)
+        {
+          // El jugador llegó a la casilla objetivo.
+          monitor.finalizarJuego();
+          monitor.setMostrarResultados(true);
+        }*/
       }
       // monitor.get_entidad(0)->fixBateria_sig_accion(celdaJ_inicial, accion);
     }
@@ -102,10 +112,12 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
       if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(0))->getSubTipo() == aldeano)
       {
         monitor.get_entidad(0)->perderPV(1);
+        cout << "El jugador ha chocado con un aldeano\n";
       }
       else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(0))->getSubTipo() == sonambulo)
       {
         monitor.get_entidad(0)->perderPV(1);
+        cout << "El jugador ha chocado con un sonámbulo\n";
       }
       else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(0))->getSubTipo() == lobo)
       {
@@ -127,6 +139,7 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
 
         // Opcion simplemente choca contra el lobo
         monitor.get_entidad(0)->perderPV(1);
+        cout << "El jugador ha chocado con un lobo\n";
       }
       salida = false;
     }
@@ -181,7 +194,7 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
       monitor.get_entidad(1)->SetActionSent(actFORWARD);
     else
     {
-      cout << "El sonambulo no está en la vision: actSON_FORWARD\n";
+      cout << "Envío de orden actSON_FORWARD al sonámbulo fuera de distancia\n";
     }
     salida = true;
     break;
@@ -191,7 +204,7 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
       monitor.get_entidad(1)->SetActionSent(actTURN_SL);
     else
     {
-      cout << "El sonambulo no está en la vision: actSON_TURN_SL\n";
+      cout << "Envío de orden actSON_TURN_SL al sonámbulo fuera de distancia\n";
     }
     salida = true;
     break;
@@ -201,7 +214,7 @@ bool actuacionJugador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, un
       monitor.get_entidad(1)->SetActionSent(actTURN_SR);
     else
     {
-      cout << "El sonambulo no está en la vision: actSON_TURN_SR\n";
+      cout << "Envío de orden actSON_TURN_SR al sonámbulo fuera de distancia\n";
     }
     salida = true;
     break;
@@ -258,6 +271,7 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
         {
         case 'M': // Muro
           monitor.get_entidad(0)->seAostio();
+          cout << "El sonámbulo ha chocado con un muro\n";
           break;
         case 'P': // Precipicio
           cout << "Se cayó por un precipicio el sonámbulo\n";
@@ -267,7 +281,7 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
           monitor.setMostrarResultados(true);
           break;
         case 'X': // Casilla Rosa (Recarga)
-          //monitor.get_entidad(0)->increaseBateria(10);
+          // monitor.get_entidad(0)->increaseBateria(10);
           monitor.get_entidad(1)->setPosicion(x, y);
           out = true;
           break;
@@ -308,12 +322,22 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
           {
             monitor.put_active_objetivos(1);
             monitor.get_entidad(0)->anularAlcanzados();
-            monitor.get_entidad(0)->setObjetivos(monitor.get_active_objetivos());
             monitor.get_entidad(0)->incrMisiones();
             monitor.get_entidad(0)->incrPuntuacion(10);
+            for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+            {
+              monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+            }
           }
+          /*else if (monitor.getLevel() == 1 or monitor.getLevel() == 3)
+          {
+            // El jugador llegó a la casilla objetivo.
+            monitor.finalizarJuego();
+            monitor.setMostrarResultados(true);
+          }*/
         }
       }
+
       else
       {
         // Choca contra una entidad
@@ -327,13 +351,13 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
           switch (agente)
           {
           case aldeano:
-            cout << "El sonámbulo chocó contra un aldeano\n";
+            cout << "El sonámbulo reiniciado por chocar contra un aldeano\n";
             break;
           case jugador_:
-            cout << "El sonámbulo chocó contra el jugador\n";
+            cout << "El sonámbulo reiniciado por chocar contra el jugador\n";
             break;
           case lobo:
-            cout << "El sonámbulo chocó contra un lobo\n";
+            cout << "El sonámbulo reiniciado por chocar contra un lobo\n";
             break;
           }
           // Opcion reiniciarse en otro punto del mapa
@@ -393,7 +417,7 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
     case actIDLE:
       if (celda == 'X')
       { // Casilla Rosa (Recarga)
-        //monitor.get_entidad(0)->increaseBateria(10);
+        // monitor.get_entidad(0)->increaseBateria(10);
       }
 
       out = true;
@@ -432,7 +456,7 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
       break;
 
     case actWHEREIS: // Esta accion para un lobo es empujar equivalente a un actPUSH
-      cout << "Recibido un empujon por un lobo\n";
+      cout << "Recibido un empujón por un lobo\n";
       bool esta_jugador_delante = monitor.getMapa()->casillaOcupada(entidad) == 0;
       monitor.get_entidad(0)->seAostio();
       if (esta_jugador_delante)
@@ -441,8 +465,9 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
         if (monitor.getMapa()->QuienEnCasilla(casilla.first, casilla.second) == -1 and
             monitor.getMapa()->getCelda(casilla.first, casilla.second) != 'M' and
             monitor.getMapa()->getCelda(casilla.first, casilla.second) != 'P')
-          if (aleatorio(2) == 1)
+          if (aleatorio(1) == 0)
           { // Solo ocurre la mitad de las veces que el lobo lo intenta.
+            cout << "\tEl empujón ha sido efectivo\n";
             monitor.get_entidad(0)->setPosicion(casilla.first, casilla.second);
             monitor.get_entidad(0)->Increment_Empujones();
             monitor.get_entidad(entidad)->giroIzq();
@@ -637,7 +662,7 @@ bool lanzar_motor_juego(int &colisiones, int acc)
       cout << "Colisiones: " << monitor.get_entidad(0)->getColisiones() << endl;
       cout << "Empujones: " << monitor.get_entidad(0)->getEmpujones() << endl;
       cout << "Porcentaje de mapa descubierto: " << monitor.CoincidenciaConElMapa() << endl;
-      cout << "Objetivos encontrados: " << monitor.get_entidad(0)->getMisiones() << endl;
+      cout << "Objetivos encontrados: (" << monitor.get_entidad(0)->getMisiones() << ") " << monitor.get_entidad(0)->getPuntuacion() << endl;
       monitor.setMostrarResultados(false);
 
       out = true;
@@ -658,7 +683,7 @@ void lanzar_motor_juego2(MonitorJuego &monitor)
 
   if (monitor.mostrarResultados() and monitor.getLevel() < 2)
   {
-    cout << "Longitud del camino: " << 3001 - monitor.get_entidad(0)->getInstantesPendientes() << endl;
+    cout << "Longitud del camino: " << 2999 - monitor.get_entidad(0)->getInstantesPendientes() << endl;
     monitor.setMostrarResultados(false);
   }
   else if (monitor.mostrarResultados() and monitor.getLevel() < 4)
@@ -674,7 +699,7 @@ void lanzar_motor_juego2(MonitorJuego &monitor)
     cout << "Colisiones: " << monitor.get_entidad(0)->getColisiones() << endl;
     cout << "Empujones: " << monitor.get_entidad(0)->getEmpujones() << endl;
     cout << "Porcentaje de mapa descubierto: " << monitor.CoincidenciaConElMapa() << endl;
-    cout << "Objetivos encontrados: " << monitor.get_entidad(0)->getMisiones() << endl;
+    cout << "Objetivos encontrados: (" << monitor.get_entidad(0)->getMisiones() << ") " << monitor.get_entidad(0)->getPuntuacion() << endl;
     monitor.setMostrarResultados(false);
   }
 }
