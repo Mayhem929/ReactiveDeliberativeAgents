@@ -977,7 +977,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 
 		if (!SolutionFound && !frontier.empty()){
 			current_node = frontier.top();
-			while (frontier.size() > 1 && (explored.find(current_node)!=explored.end() || current_node.st.suma > solution_node.st.suma)) {
+			while (frontier.size() > 1 && (explored.find(current_node)!=explored.end())) {
 				
 				frontier.pop();
 				current_node = frontier.top();
@@ -986,15 +986,16 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 		}
 	}
 
-	plan.push_front(solution_node.accion);
-	if(solution_node.padre != nullptr) do {
-		plan.push_front(solution_node.padre->accion);
-		solution_node.padre = solution_node.padre->padre;			
-	} while(solution_node.padre->padre != nullptr);
+	if(SolutionFound)
+		plan.push_front(solution_node.accion);
+		if(solution_node.padre != nullptr) do {
+			plan.push_front(solution_node.padre->accion);
+			solution_node.padre = solution_node.padre->padre;			
+		} while(solution_node.padre->padre != nullptr);
 	
-	cout << "Nodos explorados: " << n << endl;
-	cout << "Suma final: " << solution_node.st.suma << endl;
-	cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
+	// cout << "Nodos explorados: " << n << endl;
+	// cout << "Suma final: " << solution_node.st.suma << endl;
+	// cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
 	
 	return plan;
 
