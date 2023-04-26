@@ -300,6 +300,10 @@ stateN2 apply(const Action &a, const stateN2 &st, const vector<vector<unsigned c
   switch (a){
   case actFORWARD: // si casilla delante es transitable y no está ocupada por el sonámbulo
 	sig_ubicacion = NextCasilla(st.jugador);
+	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f && sig_ubicacion.c == st.sonambulo.c)){
+	  st_result.coste += coste(st_result, actFORWARD, mapa);
+	  st_result.jugador = sig_ubicacion;
+	}
 	if(mapa[st_result.jugador.f][st_result.jugador.c] == 'K'){
 		st_result.bikini = true;
 		st_result.zapatillas = false;
@@ -307,10 +311,6 @@ stateN2 apply(const Action &a, const stateN2 &st, const vector<vector<unsigned c
 	if(mapa[st_result.jugador.f][st_result.jugador.c] == 'D'){
 		st_result.bikini = false;
 		st_result.zapatillas = true;
-	}
-	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f && sig_ubicacion.c == st.sonambulo.c)){
-	  st_result.coste += coste(st_result, actFORWARD, mapa);
-	  st_result.jugador = sig_ubicacion;
 	}
 	break;
   case actTURN_L:
@@ -342,12 +342,16 @@ stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned c
   stateN3 st_result = st;
   ubicacion sig_ubicacion;
 
-  if(a != actFORWARD && a != actSON_FORWARD)
-	st_result.coste += coste(st_result, a, mapa);
+  if(a != actFORWARD and a != actSON_FORWARD)
+    st_result.coste += coste(st_result, a, mapa);
 
   switch (a){
   case actFORWARD: // si casilla delante es transitable y no está ocupada por el sonámbulo
 	sig_ubicacion = NextCasilla(st.jugador);
+	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f && sig_ubicacion.c == st.sonambulo.c)){
+	  st_result.coste += coste(st_result, actFORWARD, mapa);
+	  st_result.jugador = sig_ubicacion;
+	}
 	if(mapa[st_result.jugador.f][st_result.jugador.c] == 'K'){
 		st_result.bikini = true;
 		st_result.zapatillas = false;
@@ -355,10 +359,6 @@ stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned c
 	if(mapa[st_result.jugador.f][st_result.jugador.c] == 'D'){
 		st_result.bikini = false;
 		st_result.zapatillas = true;
-	}
-	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f && sig_ubicacion.c == st.sonambulo.c)){
-	  st_result.coste += coste(st_result, actFORWARD, mapa);
-	  st_result.jugador = sig_ubicacion;
 	}
 	break;
   case actTURN_L:
@@ -369,6 +369,10 @@ stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned c
 	break;
   case actSON_FORWARD: // si casilla delante es transitable y no está ocupada por el jugador
 	sig_ubicacion = NextCasilla(st.sonambulo);
+	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.jugador.f && sig_ubicacion.c == st.jugador.c)){
+	  st_result.coste += coste(st_result, actSON_FORWARD, mapa);
+	  st_result.sonambulo = sig_ubicacion;
+	}
 	if(mapa[st_result.sonambulo.f][st_result.sonambulo.c] == 'K'){
 		st_result.bikini_son = true;
 		st_result.zapatillas_son = false;
@@ -376,10 +380,6 @@ stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned c
 	if(mapa[st_result.sonambulo.f][st_result.sonambulo.c] == 'D'){
 		st_result.bikini_son = false;
 		st_result.zapatillas_son = true;
-	}
-	if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.jugador.f && sig_ubicacion.c == st.jugador.c)){
-	  st_result.coste += coste(st_result, actSON_FORWARD, mapa);
-	  st_result.sonambulo = sig_ubicacion;
 	}
 	break;
   case actSON_TURN_SL:
@@ -660,6 +660,18 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 							current_node.st.jugador.c==final.c);
 	if(SolutionFound)
 		return plan;
+
+
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'K'){
+		current_node.st.bikini = true;
+		current_node.st.zapatillas = false;
+	}
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'D'){
+		current_node.st.bikini = false;
+		current_node.st.zapatillas = true;
+	}
+
+
 	frontier.push(current_node);
 
 	while (!frontier.empty() && !SolutionFound) {
@@ -685,7 +697,7 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 			// cout << "Mejor coste actual: " << solution_node.st.coste << endl;
 			// if (solution_node.padre != nullptr ) cout << "Mejor coste actual padre: " << solution_node.padre->st.coste << endl;
 			// cout << "Coste minimo disponible para expandir: " << frontier.top().st.coste << endl;
-			if(current_node.st.coste < solution_node.st.coste){
+			if(current_node.st.coste <= solution_node.st.coste){
 				solution_node = current_node;	
 			}
 
@@ -697,7 +709,6 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 			}
 			
 		} else if (explored.find(child_forward)==explored.end()) {
-
 			child_forward.accion = actFORWARD;
 			frontier.push(child_forward);
 		}
@@ -754,13 +765,14 @@ int dist_max(const ubicacion &a, const ubicacion &b){
 
 int heuristic(const stateN3 &a, const ubicacion &b, const vector<vector<unsigned char>> &mapa){
 	
-	int dist_obj = dist_max(a.sonambulo, b);
-	int dist_son = max(0, dist_max(a.jugador, a.sonambulo) - 4);
+	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 3);
+	int dist_son = dist_max(a.sonambulo, b);
 
-	if(dist_obj > 0)
-		return dist_obj-1 + coste(a, actSON_FORWARD, mapa) + dist_son;
-	else
-		return 0;
+	// if(dist_obj > 0)
+	// 	return dist_obj-1 + coste(a, actSON_FORWARD, mapa) + dist_son;
+	// else
+	// 	return 0;
+	return dist_jug + dist_son;
 }
 
 
@@ -768,7 +780,7 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 							const vector<vector<unsigned char>> &mapa) {
 	nodeN3 current_node;
 	nodeN3 solution_node;
-	priority_queue<nodeN3> frontier;
+	priority_queue<nodeN3, vector<nodeN3>, Compare> frontier;
 	set<nodeN3> explored;
 	list<Action> plan;
 	int n = 0;
@@ -784,6 +796,24 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 							current_node.st.sonambulo.c==final.c);
 	if(SolutionFound)
 		return plan;
+
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'K'){
+		current_node.st.bikini = true;
+		current_node.st.zapatillas = false;
+	}
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'D'){
+		current_node.st.bikini = false;
+		current_node.st.zapatillas = true;
+	}
+
+	if(mapa[inicio.sonambulo.f][inicio.sonambulo.c] == 'K'){
+		current_node.st.bikini_son = true;
+		current_node.st.zapatillas_son = false;
+	}
+	if(mapa[inicio.sonambulo.f][inicio.sonambulo.c] == 'D'){
+		current_node.st.bikini_son = false;
+		current_node.st.zapatillas_son = true;
+	}
 
 	frontier.push(current_node);
 
@@ -807,7 +837,9 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 			child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
 			child_son_forward.st.heuristica = heuristic(child_son_forward.st, final, mapa);
 			child_son_forward.st.suma = child_son_forward.st.coste + child_son_forward.st.heuristica;
-		
+
+			auto it = explored.find(child_son_forward);
+
 			if (child_son_forward.st.sonambulo.f==final.f && child_son_forward.st.sonambulo.c==final.c) {
 				child_son_forward.accion = actSON_FORWARD;
 				current_node = child_son_forward;
@@ -818,16 +850,22 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 				if(current_node.st.suma < solution_node.st.suma){
 					solution_node = current_node;	
 				}
-				if(frontier.top().st.suma > solution_node.st.suma){
-					SolutionFound = true;
-					cout << "Nodos explorados: " << n << endl;
-					cout << "Suma final: " << solution_node.st.suma << endl;
-					cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
-				}
-			} else if (explored.find(child_son_forward)==explored.end()) {
-
+			} else if (it==explored.end() and it->st.suma < solution_node.st.suma) {
 				child_son_forward.accion = actSON_FORWARD;
 				frontier.push(child_son_forward);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_son_forward.st.suma){
+					explored.erase(it);
+					child_son_forward.accion = actSON_FORWARD;
+					frontier.push(child_son_forward);
+			}
+
+			if(frontier.top().st.suma > solution_node.st.suma){
+				SolutionFound = true;
+				cout << "Nodos explorados: " << n << endl;
+				cout << "Suma final: " << solution_node.st.suma << endl;
+				cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
 			}
 		}
 
@@ -838,10 +876,18 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 			child_forward.st = apply(actFORWARD, current_node.st, mapa);
 			child_forward.st.heuristica = heuristic(child_forward.st, final, mapa);
 			child_forward.st.suma = child_forward.st.coste + child_forward.st.heuristica;
+			
+			auto it = explored.find(child_forward);
 
-			if (explored.find(child_forward)==explored.end()) {
+			if (it==explored.end() and it->st.suma < solution_node.st.suma) {
 				child_forward.accion = actFORWARD;
 				frontier.push(child_forward);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_forward.st.suma){
+					explored.erase(it);
+					child_forward.accion = actFORWARD;
+					frontier.push(child_forward);
 			}
 
 			// Generar hijo actTURN_L
@@ -851,21 +897,37 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 			child_turnl.st.heuristica = heuristic(child_turnl.st, final, mapa);
 			child_turnl.st.suma = child_turnl.st.coste + child_turnl.st.heuristica;
 
-			if (explored.find(child_turnl)==explored.end()){
+			it = explored.find(child_turnl);
+
+			if (it==explored.end() and it->st.suma < solution_node.st.suma) {
 				child_turnl.accion = actTURN_L;
 				frontier.push(child_turnl);
 			}
-			
+			else if(it!=explored.end())
+				if (it->st.suma > child_turnl.st.suma){
+					explored.erase(it);
+					child_turnl.accion = actTURN_L;
+					frontier.push(child_turnl);
+			}
+
 			// Generar hijo actTURN_R
 			nodeN3 child_turnr;
 			child_turnr.padre = make_shared<nodeN3>(current_node);
 			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
 			child_turnr.st.heuristica = heuristic(child_turnr.st, final, mapa);
 			child_turnr.st.suma = child_turnr.st.coste + child_turnr.st.heuristica;
+			
+			it = explored.find(child_turnr);
 
-			if (explored.find(child_turnr)==explored.end()){
+			if (it==explored.end() and it->st.suma < solution_node.st.suma) {
 				child_turnr.accion = actTURN_R;
 				frontier.push(child_turnr);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_turnr.st.suma){
+					explored.erase(it);
+					child_turnr.accion = actTURN_R;
+					frontier.push(child_turnr);
 			}
 
 			if(son_en_vision){
@@ -877,9 +939,17 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 				child_son_turnr.st.heuristica = heuristic(child_son_turnr.st, final, mapa);
 				child_son_turnr.st.suma = child_son_turnr.st.coste + child_son_turnr.st.heuristica;
 
-				if (explored.find(child_son_turnr)==explored.end()){
+				it = explored.find(child_son_turnr);
+
+				if (it==explored.end() and it->st.suma < solution_node.st.suma) {
 					child_son_turnr.accion = actSON_TURN_SR;
 					frontier.push(child_son_turnr);
+				}
+				else if(it!=explored.end())
+					if (it->st.suma > child_son_turnr.st.suma){
+						explored.erase(it);
+						child_son_turnr.accion = actSON_TURN_SR;
+						frontier.push(child_son_turnr);
 				}
 
 				// Generar hijo actSON_TURN_SL
@@ -889,19 +959,32 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 				child_son_turnl.st.heuristica = heuristic(child_son_turnl.st, final, mapa);
 				child_son_turnl.st.suma = child_son_turnl.st.coste + child_son_turnl.st.heuristica;
 
-				if (explored.find(child_son_turnl)==explored.end()){
+				it = explored.find(child_son_turnl);
+
+				if (it==explored.end() and it->st.suma < solution_node.st.suma) {
 					child_son_turnl.accion = actSON_TURN_SL;
 					frontier.push(child_son_turnl);
 				}
+				else if(it!=explored.end())
+					if (it->st.suma > child_son_turnl.st.suma){
+						explored.erase(it);
+						child_son_turnl.accion = actSON_TURN_SL;
+						frontier.push(child_son_turnl);
+					}
 			}
 
 		}
 
 		if (!SolutionFound && !frontier.empty()){
 			current_node = frontier.top();
-			while (!frontier.empty() && explored.find(current_node)!=explored.end()) {
+			while (!frontier.empty() && explored.find(current_node)!=explored.end() && current_node.st.suma > solution_node.st.suma) {
+				if(current_node.st.suma > solution_node.st.suma){
+					explored.insert(current_node);
+				}
+				
 				frontier.pop();
 				current_node = frontier.top();
+
 			}
 		}
 	}

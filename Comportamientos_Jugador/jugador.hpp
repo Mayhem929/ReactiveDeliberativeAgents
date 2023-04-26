@@ -161,7 +161,8 @@ class nodeN3{
       return (st==n.st);
     }
 
-    bool operator<(const nodeN3 &n) const {
+    // Decidir si un nodo es mejor que otro
+    bool peor_que(const nodeN3 &n) const {
       if (st.suma > n.st.suma) 
         return true;
       else if (st.suma == n.st.suma && st.jugador.f<n.st.jugador.f)
@@ -187,6 +188,54 @@ class nodeN3{
         return true;
       else
         return false;
+    }
+
+    bool operator<(const nodeN3 &n) const {
+      if (st.jugador.f<n.st.jugador.f)
+        return true;
+      else if (st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c)
+        return true;
+      else if (st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
+                  && st.jugador.brujula<n.st.jugador.brujula)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo.f<n.st.sonambulo.f)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c<n.st.sonambulo.c)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c==n.st.sonambulo.c && st.sonambulo.brujula<n.st.sonambulo.brujula)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas<n.st.zapatillas)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas==n.st.zapatillas && st.bikini<n.st.bikini)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas==n.st.zapatillas && st.bikini==n.st.bikini
+                  && st.zapatillas_son < n.st.zapatillas_son)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas==n.st.zapatillas && st.bikini==n.st.bikini
+                  && st.zapatillas_son == n.st.zapatillas_son && st.bikini_son < n.st.bikini_son)
+        return true;
+      else
+        return false;
+    }
+};
+
+class Compare {
+public:
+    bool operator()(nodeN3 below, nodeN3 above)
+    {
+        if (below.peor_que(above)) {
+            return true;
+        }
+        else if (above.peor_que(below))
+            return false;
+        else
+            return false;
     }
 };
 
