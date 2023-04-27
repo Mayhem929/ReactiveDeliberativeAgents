@@ -119,10 +119,8 @@ class nodeN2{
       return (st==n.st);
     }
 
-
-    // Decidir si un nodo es mejor que otro
-    bool operator<(const nodeN2 &n) const {
-      if (st.coste > n.st.coste)
+    bool peor_que(const nodeN2 &n) const {
+      if (st.coste > n.st.coste) 
         return true;
       else if (st.coste == n.st.coste && st.jugador.f<n.st.jugador.f)
         return true;
@@ -143,6 +141,33 @@ class nodeN2{
                   && st.zapatillas<n.st.zapatillas)
         return true;
       else if (st.coste == n.st.coste && st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas==n.st.zapatillas && st.bikini<n.st.bikini)
+        return true;
+      else
+        return false;
+    }
+
+    // Decidir si un nodo es mejor que otro
+    bool operator<(const nodeN2 &n) const {
+      if (st.jugador.f<n.st.jugador.f)
+        return true;
+      else if (st.jugador.f==n.st.jugador.f && st.jugador.c<n.st.jugador.c)
+        return true;
+      else if (st.jugador.f==n.st.jugador.f && st.jugador.c==n.st.jugador.c
+                  && st.jugador.brujula<n.st.jugador.brujula)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo.f<n.st.sonambulo.f)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c<n.st.sonambulo.c)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo.f==n.st.sonambulo.f
+                  && st.sonambulo.c==n.st.sonambulo.c && st.sonambulo.brujula<n.st.sonambulo.brujula)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
+                  && st.zapatillas<n.st.zapatillas)
+        return true;
+      else if (st.jugador == n.st.jugador && st.sonambulo==n.st.sonambulo
                   && st.zapatillas==n.st.zapatillas && st.bikini<n.st.bikini)
         return true;
       else
@@ -225,7 +250,22 @@ class nodeN3{
     }
 };
 
-class Compare {
+class CompareN2 {
+public:
+    bool operator()(nodeN2 below, nodeN2 above)
+    {
+        if (below.peor_que(above)) {
+            return true;
+        }
+        else if (above.peor_que(below))
+            return false;
+        else
+            return false;
+    }
+};
+
+
+class CompareN3 {
 public:
     bool operator()(nodeN3 below, nodeN3 above)
     {
@@ -256,6 +296,9 @@ class ComportamientoJugador : public Comportamiento {
       c_state.bikini_son = false;
       c_state.zapatillas_son = false;
 
+      bien_situado = false;
+      situando = false;
+
       goal.f = size;
       goal.c = size;
       hayPlan = false;
@@ -278,6 +321,8 @@ class ComportamientoJugador : public Comportamiento {
     bool hayPlan;         // Si true indica que se está siguiendo un plan
     ubicacion goal;
     stateN3 c_state;
+    bool bien_situado;
+    bool situando;
     // Funciones privadas
 
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);

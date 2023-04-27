@@ -540,7 +540,6 @@ list<Action> AnchuraSoloJugador(const stateN1 &inicio, const ubicacion &final,
 
 }
 
-
 // Calcula el plan para el nivel 1
 list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
 							const vector<vector<unsigned char>> &mapa) {
@@ -644,12 +643,11 @@ list<Action> AnchuraNivel1(const stateN1 &inicio, const ubicacion &final,
 	return plan;
 }
 
-
 list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 							const vector<vector<unsigned char>> &mapa) {
 	nodeN2 current_node;
 	nodeN2 solution_node;
-	priority_queue<nodeN2> frontier;
+	priority_queue<nodeN2, vector<nodeN2>, CompareN2> frontier;
 	set<nodeN2> explored;
 	list<Action> plan;
 	int n = 0;
@@ -687,6 +685,7 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 		nodeN2 child_forward;
 		child_forward.padre = make_shared<nodeN2>(current_node);
 		child_forward.st = apply(actFORWARD, current_node.st, mapa);
+ 		auto it = explored.find(child_forward);
 
 		if (child_forward.st.jugador.f==final.f && child_forward.st.jugador.c==final.c) {
 			child_forward.accion = actFORWARD;
@@ -703,14 +702,17 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 
 			if(frontier.top().st.coste > solution_node.st.coste){
 				SolutionFound = true;
-				cout << "Nodos explorados: " << n << endl;
-				cout << "Coste final: " << solution_node.st.coste << endl;
-				cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
 			}
 			
-		} else if (explored.find(child_forward)==explored.end()) {
+		} else if (it==explored.end() and child_forward.st.coste < solution_node.st.coste) {
 			child_forward.accion = actFORWARD;
 			frontier.push(child_forward);
+		}
+		else if(it!=explored.end())
+			if (it->st.coste > child_forward.st.coste){
+				explored.erase(it);
+				child_forward.accion = actFORWARD;
+				frontier.push(child_forward);
 		}
 
 		if (!SolutionFound) {
@@ -718,19 +720,33 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 			nodeN2 child_turnl;
 			child_turnl.padre = make_shared<nodeN2>(current_node);
 			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
-			if (explored.find(child_turnl)==explored.end()){
+			auto it = explored.find(child_turnl);
+			if (explored.find(child_turnl)==explored.end() && child_turnl.st.coste < solution_node.st.coste){
 				child_turnl.accion = actTURN_L;
 				frontier.push(child_turnl);
 			}
+			else if(it!=explored.end())
+				if (it->st.coste > child_turnl.st.coste){
+					explored.erase(it);
+					child_turnl.accion = actTURN_L;
+					frontier.push(child_turnl);
+			}
+
 			// Generar hijo actTURN_R
 			nodeN2 child_turnr;
 			child_turnr.padre = make_shared<nodeN2>(current_node);
 			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
-			if (explored.find(child_turnr)==explored.end()){
+			it = explored.find(child_turnr);
+			if (explored.find(child_turnr)==explored.end() && child_turnr.st.coste < solution_node.st.coste){
 				child_turnr.accion = actTURN_R;
 				frontier.push(child_turnr);
 			}
-
+			else if(it!=explored.end())
+				if (it->st.coste > child_turnr.st.coste){
+					explored.erase(it);
+					child_turnr.accion = actTURN_R;
+					frontier.push(child_turnr);
+			}
 		}
 
 		if (!SolutionFound && !frontier.empty()){
@@ -742,14 +758,18 @@ list<Action> Dijkstra(const stateN2 &inicio, const ubicacion &final,
 		}
 	}
 
-  	if (SolutionFound){
+  	// if (SolutionFound){
 		plan.push_front(solution_node.accion);
 		if(solution_node.padre != nullptr) do {
 			plan.push_front(solution_node.padre->accion);
 			solution_node.padre = solution_node.padre->padre;			
 		} while(solution_node.padre->padre != nullptr);
-	}
+	// }
 	
+	cout << "Nodos explorados: " << n << endl;
+	cout << "Coste final: " << solution_node.st.coste << endl;
+	cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
+
 	return plan;
 
 }
@@ -765,7 +785,7 @@ int dist_max(const ubicacion &a, const ubicacion &b){
 
 int heuristic(const stateN3 &a, const ubicacion &b, const vector<vector<unsigned char>> &mapa){
 	
-	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 3);
+	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 6);
 	int dist_son = dist_max(a.sonambulo, b);
 
 	// if(dist_obj > 0)
@@ -775,12 +795,236 @@ int heuristic(const stateN3 &a, const ubicacion &b, const vector<vector<unsigned
 	return dist_jug + dist_son;
 }
 
-
 list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 							const vector<vector<unsigned char>> &mapa) {
 	nodeN3 current_node;
 	nodeN3 solution_node;
-	priority_queue<nodeN3, vector<nodeN3>, Compare> frontier;
+	priority_queue<nodeN3, vector<nodeN3>, CompareN3> frontier;
+	set<nodeN3> explored;
+	list<Action> plan;
+	int n = 0;
+
+	solution_node.st.coste = numeric_limits<int>::max();
+	solution_node.st.heuristica = heuristic(inicio, final, mapa);
+	solution_node.st.suma = solution_node.st.coste ;
+
+	current_node.st = inicio;
+	current_node.padre = nullptr;
+
+	bool SolutionFound = (current_node.st.sonambulo.f==final.f &&
+							current_node.st.sonambulo.c==final.c);
+	if(SolutionFound)
+		return plan;
+
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'K'){
+		current_node.st.bikini = true;
+		current_node.st.zapatillas = false;
+	}
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'D'){
+		current_node.st.bikini = false;
+		current_node.st.zapatillas = true;
+	}
+
+	if(mapa[inicio.sonambulo.f][inicio.sonambulo.c] == 'K'){
+		current_node.st.bikini_son = true;
+		current_node.st.zapatillas_son = false;
+	}
+	if(mapa[inicio.sonambulo.f][inicio.sonambulo.c] == 'D'){
+		current_node.st.bikini_son = false;
+		current_node.st.zapatillas_son = true;
+	}
+
+	frontier.push(current_node);
+
+	while (!frontier.empty() && !SolutionFound) {
+		frontier.pop();
+		explored.insert(current_node);
+		bool son_en_vision = SonambuloEnVision(current_node.st);
+		n++;
+		if(n%10000==0){
+			cout << endl;
+			cout << "Nodos explorados: " << n << endl;
+			cout << "Coste actual: " << current_node.st.coste << endl;
+			cout << "Suma actual: " << current_node.st.suma << endl;
+			
+		}
+		// cout << "Siguiente suma por explorar: " << frontier.top().st.suma << endl;
+		// Generar hijo actSON_FORWARD
+		if (son_en_vision) {
+			nodeN3 child_son_forward;
+			child_son_forward.padre = make_shared<nodeN3>(current_node);
+			child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
+			child_son_forward.st.heuristica = heuristic(child_son_forward.st, final, mapa);
+			child_son_forward.st.suma = child_son_forward.st.coste + child_son_forward.st.heuristica;
+
+			auto it = explored.find(child_son_forward);
+
+			if (child_son_forward.st.sonambulo.f==final.f && child_son_forward.st.sonambulo.c==final.c) {
+				child_son_forward.accion = actSON_FORWARD;
+				current_node = child_son_forward;
+				cout << endl << "Se ha encontrado una posible solucion" << endl;
+				cout << "Coste: " << current_node.st.coste << endl;
+				cout << "Suma: " << current_node.st.suma << endl;
+				cout << "Siguiente suma por explorar: " << frontier.top().st.suma << endl;
+				if(current_node.st.suma < solution_node.st.suma){
+					solution_node = current_node;	
+				}
+			} else if (it==explored.end() and child_son_forward.st.suma < solution_node.st.suma) {
+				child_son_forward.accion = actSON_FORWARD;
+				frontier.push(child_son_forward);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_son_forward.st.suma){
+					explored.erase(it);
+					child_son_forward.accion = actSON_FORWARD;
+					frontier.push(child_son_forward);
+			}
+
+			if(frontier.top().st.suma > solution_node.st.suma){
+				SolutionFound = true;
+				cout << "Nodos explorados: " << n << endl;
+				cout << "Suma final: " << solution_node.st.suma << endl;
+				cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
+			}
+		}
+
+		if (!SolutionFound) {
+			// Generar hijo actFORWARD
+			nodeN3 child_forward;
+			child_forward.padre = make_shared<nodeN3>(current_node);
+			child_forward.st = apply(actFORWARD, current_node.st, mapa);
+			child_forward.st.heuristica = heuristic(child_forward.st, final, mapa);
+			child_forward.st.suma = child_forward.st.coste + child_forward.st.heuristica;
+			
+			auto it = explored.find(child_forward);
+
+			if (it==explored.end() and child_forward.st.suma < solution_node.st.suma) {
+				child_forward.accion = actFORWARD;
+				frontier.push(child_forward);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_forward.st.suma){
+					explored.erase(it);
+					child_forward.accion = actFORWARD;
+					frontier.push(child_forward);
+			}
+
+			// Generar hijo actTURN_L
+			nodeN3 child_turnl;
+			child_turnl.padre = make_shared<nodeN3>(current_node);
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			child_turnl.st.heuristica = heuristic(child_turnl.st, final, mapa);
+			child_turnl.st.suma = child_turnl.st.coste + child_turnl.st.heuristica;
+
+			it = explored.find(child_turnl);
+
+			if (it==explored.end() and child_turnl.st.suma < solution_node.st.suma) {
+				child_turnl.accion = actTURN_L;
+				frontier.push(child_turnl);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_turnl.st.suma){
+					explored.erase(it);
+					child_turnl.accion = actTURN_L;
+					frontier.push(child_turnl);
+			}
+
+			// Generar hijo actTURN_R
+			nodeN3 child_turnr;
+			child_turnr.padre = make_shared<nodeN3>(current_node);
+			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			child_turnr.st.heuristica = heuristic(child_turnr.st, final, mapa);
+			child_turnr.st.suma = child_turnr.st.coste + child_turnr.st.heuristica;
+			
+			it = explored.find(child_turnr);
+
+			if (it==explored.end() and child_turnr.st.suma < solution_node.st.suma) {
+				child_turnr.accion = actTURN_R;
+				frontier.push(child_turnr);
+			}
+			else if(it!=explored.end())
+				if (it->st.suma > child_turnr.st.suma){
+					explored.erase(it);
+					child_turnr.accion = actTURN_R;
+					frontier.push(child_turnr);
+			}
+
+			if(son_en_vision){
+
+				// Generar hijo actSON_TURN_SR
+				nodeN3 child_son_turnr;
+				child_son_turnr.padre = make_shared<nodeN3>(current_node);
+				child_son_turnr.st = apply(actSON_TURN_SR, current_node.st, mapa);
+				child_son_turnr.st.heuristica = heuristic(child_son_turnr.st, final, mapa);
+				child_son_turnr.st.suma = child_son_turnr.st.coste + child_son_turnr.st.heuristica;
+
+				it = explored.find(child_son_turnr);
+
+				if (it==explored.end() and child_son_turnr.st.suma < solution_node.st.suma) {
+					child_son_turnr.accion = actSON_TURN_SR;
+					frontier.push(child_son_turnr);
+				}
+				else if(it!=explored.end())
+					if (it->st.suma > child_son_turnr.st.suma){
+						explored.erase(it);
+						child_son_turnr.accion = actSON_TURN_SR;
+						frontier.push(child_son_turnr);
+				}
+
+				// Generar hijo actSON_TURN_SL
+				nodeN3 child_son_turnl;
+				child_son_turnl.padre = make_shared<nodeN3>(current_node);
+				child_son_turnl.st = apply(actSON_TURN_SL, current_node.st, mapa);
+				child_son_turnl.st.heuristica = heuristic(child_son_turnl.st, final, mapa);
+				child_son_turnl.st.suma = child_son_turnl.st.coste + child_son_turnl.st.heuristica;
+
+				it = explored.find(child_son_turnl);
+
+				if (it==explored.end() and child_son_turnl.st.suma < solution_node.st.suma) {
+					child_son_turnl.accion = actSON_TURN_SL;
+					frontier.push(child_son_turnl);
+				}
+				else if(it!=explored.end())
+					if (it->st.suma > child_son_turnl.st.suma){
+						explored.erase(it);
+						child_son_turnl.accion = actSON_TURN_SL;
+						frontier.push(child_son_turnl);
+					}
+			}
+
+		}
+
+		if (!SolutionFound && !frontier.empty()){
+			current_node = frontier.top();
+			while (frontier.size() > 1 && (explored.find(current_node)!=explored.end())) {
+				
+				frontier.pop();
+				current_node = frontier.top();
+
+			}
+		}
+	}
+
+	if(SolutionFound)
+		plan.push_front(solution_node.accion);
+		if(solution_node.padre != nullptr) do {
+			plan.push_front(solution_node.padre->accion);
+			solution_node.padre = solution_node.padre->padre;			
+		} while(solution_node.padre->padre != nullptr);
+	
+	// cout << "Nodos explorados: " << n << endl;
+	// cout << "Suma final: " << solution_node.st.suma << endl;
+	// cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
+	
+	return plan;
+
+}
+
+list<Action> Nivel4(const stateN3 &inicio, const ubicacion &final,
+							const vector<vector<unsigned char>> &mapa) {
+	nodeN3 current_node;
+	nodeN3 solution_node;
+	priority_queue<nodeN3, vector<nodeN3>, CompareN3> frontier;
 	set<nodeN3> explored;
 	list<Action> plan;
 	int n = 0;
@@ -1002,6 +1246,90 @@ list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
 }
 
 
+void PonerTerrenoEnMatriz(const vector<unsigned char> &relleno, const stateN0 &st, vector<vector<unsigned char>> &matriz){
+
+	int radio = 4;
+	int i = st.jugador.f; int j = st.jugador.c;
+	int add;
+	int size = matriz.size();
+
+	switch(st.jugador.brujula){
+		case norte: 	add=-1; 	break;
+		case este:	 	add= 1; 	break;
+		case sur: 		add= 1; 	break;
+		case oeste: 	add=-1; 	break;
+		case noreste:	add=-1;		break;
+		case suroeste:	add= 1;		break;
+		case noroeste:	add=-1;		break;
+		case sureste:	add= 1;		break;
+	}
+
+	if(st.jugador.brujula == norte or st.jugador.brujula == sur){
+
+		for (int k=0; k < radio; k++){
+
+			for(int l=k*k; l < (k+1)*(k+1); l++){
+				matriz[(i+size)% size][(j+size)% size] = relleno[l];
+				j-=add;
+			}
+			j+= 2*(k+1)*add;
+			i+=add;
+		}
+	}
+
+	else if(st.jugador.brujula == este or st.jugador.brujula == oeste){
+
+		for (int k=0; k < radio; k++){
+
+			for(int l=k*k; l < (k+1)*(k+1); l++){
+				matriz[(i+size)% size][(j+size)% size] = relleno[l];
+				i+=add;
+			}
+			i-= 2*(k+1)*add;
+			j+=add;
+		}
+	}
+}
+// 	else if(st.brujula == noroeste or st.brujula == sureste){
+// 		matriz[i][j] = relleno[0]; j+=add; 
+// 		matriz[i][j] = relleno[1]; j+=add; 
+// 		matriz[i][j] = relleno[4]; j+=add; 
+// 		matriz[i][j] = relleno[9]; i+=add; j-=3*add; 
+// 		matriz[i][j] = relleno[3]; j+=add; 
+// 		matriz[i][j] = relleno[2]; j+=add; 
+// 		matriz[i][j] = relleno[5]; j+=add; 
+// 		matriz[i][j] = relleno[10];i+=add; j-=3*add;  
+// 		matriz[i][j] = relleno[8]; j+=add; 
+// 		matriz[i][j] = relleno[7]; j+=add; 
+// 		matriz[i][j] = relleno[6]; j+=add; 
+// 		matriz[i][j] = relleno[11];i+=add; j-=3*add; 
+// 		matriz[i][j] = relleno[15];j+=add; 
+// 		matriz[i][j] = relleno[14];j+=add; 
+// 		matriz[i][j] = relleno[13];j+=add; 
+// 		matriz[i][j] = relleno[12];
+// 	}
+
+// 	else if(st.brujula == noreste or st.brujula == suroeste){
+// 		matriz[i][j] = relleno[0]; j-=add; 
+// 		matriz[i][j] = relleno[3]; j-=add; 
+// 		matriz[i][j] = relleno[8]; j-=add; 
+// 		matriz[i][j] = relleno[15];i+=add; j+=3*add; 
+// 		matriz[i][j] = relleno[1]; j-=add; 
+// 		matriz[i][j] = relleno[2]; j-=add; 
+// 		matriz[i][j] = relleno[7]; j-=add; 
+// 		matriz[i][j] = relleno[14];i+=add; j+=3*add;  
+// 		matriz[i][j] = relleno[4]; j-=add; 
+// 		matriz[i][j] = relleno[5]; j-=add; 
+// 		matriz[i][j] = relleno[6]; j-=add; 
+// 		matriz[i][j] = relleno[13];i+=add; j+=3*add; 
+// 		matriz[i][j] = relleno[9]; j-=add; 
+// 		matriz[i][j] = relleno[10];j-=add; 
+// 		matriz[i][j] = relleno[11];j-=add; 
+// 		matriz[i][j] = relleno[12];
+// 	}
+// }
+
+
 // Este es el método principal que se piden en la practica.
 // Tiene como entrada la información de los sensores y devuelve la acción a realizar.
 // Para ver los distintos sensores mirar fichero "comportamiento.hpp"
@@ -1009,8 +1337,49 @@ Action ComportamientoJugador::think(Sensores sensores)
 {
 	Action accion = actIDLE;
 
-	// Incluir aquí el comportamiento del agente jugador
-	if (!hayPlan){
+
+	// TODO
+	// Hay que cambiar el apply para que no cambie el estado cuando tengamos una entidad delante.
+	// Hay que recalcular el plan cuando los sensores den colision.
+	if (sensores.nivel == 4 and hayPlan){
+		if(sensores.colision){
+			plan = Nivel4(c_state, goal, mapaResultado);
+		}
+		if(plan.size() > 0){
+			VisualizaPlan(c_state,plan);
+		}
+	}
+	else if (sensores.nivel == 4 and !hayPlan){
+
+		if(bien_situado){
+			plan = Nivel4(c_state, goal, mapaResultado);
+			hayPlan = true;
+		}
+		else if (situando){
+			c_state.jugador.f = sensores.posF;
+			c_state.jugador.c = sensores.posC;
+			c_state.jugador.brujula = sensores.sentido;
+			c_state.sonambulo.f = sensores.SONposF;
+			c_state.sonambulo.c = sensores.SONposC;
+			c_state.sonambulo.brujula = sensores.SONsentido;
+			goal.f = sensores.destinoF;
+			goal.c = sensores.destinoC;	
+			situando = false;
+			bien_situado = true;
+			
+			plan = Nivel4(c_state, goal, mapaResultado);
+			hayPlan = true;
+		}
+		else {
+			situando = true;
+			return actWHEREIS;
+		}
+
+		if(plan.size() > 0){
+			VisualizaPlan(c_state,plan);
+		}
+	}
+	else if (!hayPlan){
 	// Invocar al método de búsqueda
 		cout << "Calculando plan..." << endl;
 		c_state.jugador.f = sensores.posF;
@@ -1026,7 +1395,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 		c_state.zapatillas_son = false;
 		goal.f = sensores.destinoF;
 		goal.c = sensores.destinoC;	
-		
+		hayPlan = true;
 		// mapaResultado[-1][-1] = 'X';
 		switch (sensores.nivel)
 		{
@@ -1042,6 +1411,8 @@ Action ComportamientoJugador::think(Sensores sensores)
 		case 3:
 			plan = AStar(c_state, goal, mapaResultado);
 			break;
+		case 4:
+			
 		default:
 			break;
 		}
@@ -1049,8 +1420,6 @@ Action ComportamientoJugador::think(Sensores sensores)
 		if(plan.size() > 0){
 			VisualizaPlan(c_state,plan);
 		}
-
-		hayPlan = true;
 	}
 
 	if (hayPlan and plan.size()>0){
@@ -1085,6 +1454,10 @@ Action ComportamientoJugador::think(Sensores sensores)
 		
 		accion = plan.front();
 		plan.pop_front();
+		PonerTerrenoEnMatriz(sensores.terreno, c_state, mapaResultado);
+		
+		
+		c_state = apply(accion, c_state, mapaResultado);
 	}
 
 	if (plan.size()== 0){
