@@ -45,25 +45,25 @@ void Mapa::colorCeldaOpuestoMM(unsigned char celda)
   switch (celda)
   {
   case 'P':
-    glColor3f(1, 0, 0);
+    glColor3f(1, 0, 1);
     break;
   case 'B':
-    glColor3f(1, 0, 0);
+    glColor3f(1, 0, 1);
     break;
   case 'A':
-    glColor3f(1.0, 0.0, 0.0);
+    glColor3f(1.0, 0.0, 1.0);
     break;
   case 'S':
-    glColor3f(1, 0, 0);
+    glColor3f(1, 0, 1);
     break;
   case 'M':
-    glColor3f(1, 1, 1);
+    glColor3f(1, 0, 1);
     break;
   case 'T':
-    glColor3f(1, 0, 0);
+    glColor3f(1, 0, 1);
     break;
   case 'K':
-    glColor3f(0, 0, 0);
+    glColor3f(1, 0, 1);
     break;
   case 'Z':
     glColor3f(1, 1, 1);
@@ -72,7 +72,7 @@ void Mapa::colorCeldaOpuestoMM(unsigned char celda)
     glColor3f(1, 1, 1);
     break;
   case 'X':
-    glColor3f(0, 0, 0);
+    glColor3f(1, 0, 0);
     break;
   default:
     glColor3f(0.0, 0.0, 0.0);
@@ -86,34 +86,34 @@ void Mapa::colorCeldaOpuestoMM2(unsigned char celda)
   switch (celda)
   {
   case 'P':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'B':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'A':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0);
     break;
   case 'S':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'M':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'T':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'K':
     glColor3f(0, 0, 0);
     break;
   case 'Z':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'D':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'X':
-    glColor3f(0, 0, 0);
+    glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   default:
     glColor3f(0.0, 0.0, 0.0);
