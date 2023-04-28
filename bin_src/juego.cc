@@ -18,7 +18,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    srand(atoi(argv[1]));
+    srand(atoi(argv[2]));
     argumentos.ubicacion_mapa = argv[1];
     if (!fileExists(argumentos.ubicacion_mapa))
     {

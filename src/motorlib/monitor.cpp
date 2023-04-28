@@ -362,7 +362,7 @@ void MonitorJuego::inicializar(int pos_filaJ, int pos_colJ, int brujJ, int pos_f
         pos_colO = aleatorio(getMapa()->getNCols() - 1);
         celdaRand = getMapa()->getCelda(pos_filaO, pos_colO);
       } while ((celdaRand == 'P') or (celdaRand == 'M') or (getMapa()->entidadEnCelda(pos_filaO, pos_colO) != '_'));
-      nueva_entidad(new Entidad(npc, aldeano, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Aldeano3D(""), new ComportamientoAldeano(), 0, objetivosActivos, 3000));
+      nueva_entidad(new Entidad(npc, aldeano, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Aldeano3D(""), new ComportamientoAldeano(), 1, objetivosActivos, 3000));
     }
 
     for (int i = 0; i < nlobos; i++)
@@ -373,7 +373,7 @@ void MonitorJuego::inicializar(int pos_filaJ, int pos_colJ, int brujJ, int pos_f
         pos_colO = aleatorio(getMapa()->getNCols() - 1);
         celdaRand = getMapa()->getCelda(pos_filaO, pos_colO);
       } while ((celdaRand == 'P') or (celdaRand == 'M') or (getMapa()->entidadEnCelda(pos_filaO, pos_colO) != '_'));
-      nueva_entidad(new Entidad(npc, lobo, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Perro3D, new ComportamientoPerro(), 0, objetivosActivos, 3000));
+      nueva_entidad(new Entidad(npc, lobo, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Perro3D, new ComportamientoPerro(), 1, objetivosActivos, 3000));
     }
   }
 

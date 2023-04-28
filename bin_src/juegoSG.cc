@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     // 8,9 -> destino2
     // ...
     monitor.setMapa(argv[1]);
+    srand(atoi(argv[2]));
     monitor.startGame(atoi(argv[3]));
 
     ifstream ifile;

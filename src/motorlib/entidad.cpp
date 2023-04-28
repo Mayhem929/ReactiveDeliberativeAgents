@@ -210,6 +210,14 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
         sensor.SONsentido = EntidadSonambulo->orient;
       }
     }
+    else
+    {
+      sensor.posF = f;
+      sensor.posC = c;
+      sensor.sentido = orient;
+      sensor.destinoF = destino[0];
+      sensor.destinoC = destino[1];
+    }
 
     sensor.superficie = vision[1];
     sensor.terreno = vision[0];
@@ -218,11 +226,13 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
 
     visionAux = vision;
 
-    if (acc == -1)
-      accion = comportamiento->think(sensor);
-    else
-      accion = static_cast<Action>(acc);
-
+    if (!done)
+    {
+      if (acc == -1)
+        accion = comportamiento->think(sensor);
+      else
+        accion = static_cast<Action>(acc);
+    }
     colision = false;
     reset = false;
     mensaje = false;
