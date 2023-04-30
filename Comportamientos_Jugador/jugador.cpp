@@ -820,33 +820,28 @@ int dist_euclidea(const ubicacion &a, const ubicacion &b){
 
 int heuristic(const stateN3 &a, const ubicacion &b, const vector<vector<unsigned char>> &mapa){
 	
-	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 3);
+	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 7);
+	int dist_obj = max(0, dist_manhattan(a.jugador, b) - 7);
 	int dist_son = dist_max(a.sonambulo, b);
 
 	// if(dist_obj > 0)
 	// 	return dist_obj-1 + coste(a, actSON_FORWARD, mapa) + dist_son;
 	// else
 		// return 0;
-	return dist_jug + dist_son;
+	return dist_jug + dist_son + dist_obj;
 }
 
 int heuristicN4(const stateN3 &a, const ubicacion &b, const vector<vector<unsigned char>> &mapa){
 	
 	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 7);
+	int dist_obj = max(0, dist_manhattan(a.jugador, b) - 7);
 	int dist_son = dist_max(a.sonambulo, b);
-
-	stateN3 aux = a;
-	aux.sonambulo.f = b.f;
-	aux.sonambulo.c = b.c;
-
-	int coste_goal = coste(aux, actSON_FORWARD, mapa);
-
 
 	// if(dist_obj > 0)
 	// 	return dist_obj-1 + coste(a, actSON_FORWARD, mapa) + dist_son;
 	// else
 		// return 0;
-	return dist_jug + dist_son + coste_goal;
+	return dist_jug + dist_son + dist_obj;
 }
 
 list<Action> AStar(const stateN3 &inicio, const ubicacion &final,
@@ -1220,6 +1215,7 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 	current_node.st = inicio;
 	current_node.padre = nullptr;
 
+	bool haySolucion = false;
 	bool SolutionFound = (current_node.st.sonambulo.f==final.f &&
 							current_node.st.sonambulo.c==final.c);
 	if(SolutionFound)
@@ -1274,6 +1270,7 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 			if (child_son_forward.st.sonambulo.f==final.f && child_son_forward.st.sonambulo.c==final.c) {
 				child_son_forward.accion = actSON_FORWARD;
 				current_node = child_son_forward;
+				haySolucion = true;
 				cout << endl << "Se ha encontrado una posible solucion" << endl;
 				cout << "Coste: " << current_node.st.coste << endl;
 				cout << "Suma: " << current_node.st.suma << endl;
@@ -1421,14 +1418,22 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 	cout << "Suma final: " << solution_node.st.suma << endl;
 	cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
 
-	plan.push_front(solution_node.accion);
-	while(solution_node.padre->padre != nullptr) {
-		solution_node = *solution_node.padre;
-		plan.push_front(solution_node.accion);		
+	if(haySolucion)
+	{
+		plan.push_front(solution_node.accion);
+		while(solution_node.padre->padre != nullptr) {
+			solution_node = *solution_node.padre;
+			plan.push_front(solution_node.accion);		
+		}
+
+		return plan;
 	}
-
-	return plan;
-
+	else
+	{
+		stop = true;
+		plan.push_front(actIDLE);
+		return plan;
+	}
 }
 
 list<Action> VeARecarga(const stateN2 &inicio, const vector<vector<unsigned char>> &mapa){
@@ -1568,7 +1573,7 @@ bool Recalcular(const ubicacion &x, const vector<vector<unsigned char>> &mapaRes
 		   	superficie == 'a' or superficie == 'l';
 }
 
-void PonerTerrenoEnMatriz(const vector<unsigned char> &relleno, const vector<unsigned char> &superficie, const stateN0 &st, vector<vector<unsigned char>> &matriz){
+void PonerTerrenoEnMatriz(const vector<unsigned char> &relleno, const vector<unsigned char> &superficie, const stateN0 &st, vector<vector<unsigned char>> &matriz, bool recalcula=false){
 
 	int radio = 4;
 	int i = st.jugador.f; int j = st.jugador.c;
@@ -1591,7 +1596,7 @@ void PonerTerrenoEnMatriz(const vector<unsigned char> &relleno, const vector<uns
 		for (int k=0; k < radio; k++){
 
 			for(int l=k*k; l < (k+1)*(k+1); l++){
-				if(superficie[l] == 'l')
+				if(superficie[l] == 'l' and recalcula)
 					matriz[i][j] = 'M';
 				else
 					matriz[i][j] = relleno[l];
@@ -1608,7 +1613,7 @@ void PonerTerrenoEnMatriz(const vector<unsigned char> &relleno, const vector<uns
 		for (int k=0; k < radio; k++){
 
 			for(int l=k*k; l < (k+1)*(k+1); l++){
-				if(superficie[l] == 'l')
+				if(superficie[l] == 'l' and recalcula)
 					matriz[i][j] = 'M';
 				else
 					matriz[i][j] = relleno[l];
@@ -1668,16 +1673,19 @@ Action ComportamientoJugador::think(Sensores sensores)
 			return actIDLE;
 		}
 		
-		// if(sensores.tiempo > 2)
-		// 	radio_son = 20;
-		if(sensores.tiempo > 100)
+		// if(sensores.tiempo > 0 and sensores.tiempo < 1 and sensores.vida > 2900)
+		// 	radio_son = 5;
+		if(sensores.tiempo > 1 and sensores.tiempo < 100)
+			radio_son = 20;
+		else if(sensores.tiempo > 100 and sensores.tiempo < 200)
 			radio_son = 15;
-		else if(sensores.tiempo > 200)
+		else if(sensores.tiempo > 200 and sensores.tiempo < 250)
 			radio_son = 7;
 		else if(sensores.tiempo > 250)
 			radio_son = 2;
 
-		if (hayPlan and plan.size()== 0){
+		if (hayPlan and plan.size()== 0 or c_state.jugador.f == goal.f and c_state.jugador.c == goal.c
+										or c_state.sonambulo.f == goal.f and c_state.sonambulo.c == goal.c){
 			cout << "Se completó el plan" << endl;
 			hayPlan = false;
 			goal.f = sensores.destinoF;
@@ -1708,11 +1716,13 @@ Action ComportamientoJugador::think(Sensores sensores)
 			if(accion == actFORWARD and Recalcular(NextCasilla(c_state.jugador), mapaResultado, c_state.bikini, c_state.zapatillas, sensores.superficie[2])){
 				plan.clear();
 				hayPlan = false;
+				// PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado, true);
 				return actIDLE;
 			}
 			if(accion == actSON_FORWARD and Recalcular(NextCasilla(c_state.sonambulo), mapaResultado, c_state.bikini_son, c_state.zapatillas_son, '_')){
 				plan.clear();
 				hayPlan = false;
+				// PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado, true);
 				return actIDLE;
 			}
 		}
@@ -1720,11 +1730,11 @@ Action ComportamientoJugador::think(Sensores sensores)
 		if (!hayPlan){
 
 			if(bien_situado){
-				PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado);
+				PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado, true);
 
 				if(necesita_recarga and hay_recarga and mapaResultado[c_state.sonambulo.f][c_state.sonambulo.c == goal.c] != 'X')
 					plan = VeARecarga(c_state, mapaResultado);
-				else if(dist_euclidea(c_state.sonambulo, goal) > radio_son or stop)
+				else if(dist_manhattan(c_state.sonambulo, goal) > radio_son or stop)
 					plan = Nivel4Jug(c_state, goal, mapaResultado);
 				else {
 					plan = Nivel4Son(c_state, goal, mapaResultado, stop);
@@ -1748,11 +1758,11 @@ Action ComportamientoJugador::think(Sensores sensores)
 				situando = false;
 				bien_situado = true;
 				
-				PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado);
+				PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado, true);
 				
 				if(necesita_recarga and hay_recarga and mapaResultado[c_state.sonambulo.f][c_state.sonambulo.c == goal.c] != 'X')
 					plan = VeARecarga(c_state, mapaResultado);
-				else if(dist_euclidea(c_state.sonambulo, goal) > radio_son or stop)
+				else if(dist_manhattan(c_state.sonambulo, goal) > radio_son or stop)
 					plan = Nivel4Jug(c_state, goal, mapaResultado);
 				else {
 					plan = Nivel4Son(c_state, goal, mapaResultado, stop);
