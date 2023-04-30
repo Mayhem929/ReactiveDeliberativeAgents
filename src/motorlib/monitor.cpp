@@ -143,6 +143,14 @@ void MonitorJuego::put_active_objetivos(int number)
     for (int i = 0; i < number; i++)
     {
       auto it = objetivos.begin();
+      if(this->get_entidades()->size() > 1){
+      while((this->get_entidad(0)->getFil() == it->first and this->get_entidad(0)->getCol() == it->second) or
+            (this->get_entidad(1)->getFil() == it->first and this->get_entidad(1)->getCol() == it->second))
+        {
+          objetivos.erase(objetivos.begin());
+          it = objetivos.begin();
+        }
+      }
       v.push_back(it->first);
       v.push_back(it->second);
       objetivos.erase(objetivos.begin());
