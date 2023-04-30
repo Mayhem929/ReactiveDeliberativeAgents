@@ -45,22 +45,22 @@ void Mapa::colorCeldaOpuestoMM(unsigned char celda)
   switch (celda)
   {
   case 'P':
-    glColor3f(1, 0, 1);
+    glColor3f(0, 1, 0);
     break;
   case 'B':
-    glColor3f(1, 0, 1);
+    glColor3f(0, 1, 1);
     break;
   case 'A':
-    glColor3f(1.0, 0.0, 1.0);
+    glColor3f(0, 1, 0);
     break;
   case 'S':
-    glColor3f(1, 0, 1);
+    glColor3f(0, 1, 0);
     break;
   case 'M':
-    glColor3f(1, 0, 1);
+    glColor3f(0, 1, 0);
     break;
   case 'T':
-    glColor3f(1, 0, 1);
+    glColor3f(0, 1, 0);
     break;
   case 'K':
     glColor3f(1, 0, 1);
@@ -92,7 +92,7 @@ void Mapa::colorCeldaOpuestoMM2(unsigned char celda)
     glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
     break;
   case 'A':
-    glColor3f(0.0 / 255.0, 255.0 / 255.0, 0.0 / 255.0);
+    glColor3f(150.0 / 255.0, 150.0 / 255.0, 0.0 / 255.0);
     break;
   case 'S':
     glColor3f(0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);

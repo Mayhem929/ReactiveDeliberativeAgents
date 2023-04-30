@@ -302,6 +302,15 @@ class ComportamientoJugador : public Comportamiento {
       goal.f = size;
       goal.c = size;
       hayPlan = false;
+      stop = false;
+
+      recargando = false;
+      necesita_recarga = false;
+      hay_recarga = false;
+
+      radio_son = 20;
+      pinta_precipicios(mapaResultado, size);
+
     }
     ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
       // Inicializar Variables de Estado
@@ -312,7 +321,7 @@ class ComportamientoJugador : public Comportamiento {
 
     Action think(Sensores sensores);
     int interact(Action accion, int valor);
-
+    bool HayRecarga();
 
   private:
     // Declarar Variables de Estado
@@ -323,9 +332,21 @@ class ComportamientoJugador : public Comportamiento {
     stateN3 c_state;
     bool bien_situado;
     bool situando;
+    bool stop;
+    bool recargando, necesita_recarga, hay_recarga;
+    bool plan_completo;
+    int radio_son;
     // Funciones privadas
 
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
+    void pinta_precipicios(vector<vector<unsigned char>> &mapa, unsigned int size){
+      for(int i=0; i < size; i++){
+        for(int j=0; j < size; j++){
+          if ( i < 3 or j < 3 or (i > size - 4) or (j > size - 4))
+            mapa [i][j] = 'P';
+        }
+      }
+    }
 
 };
 
