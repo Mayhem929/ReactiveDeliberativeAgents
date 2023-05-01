@@ -308,7 +308,9 @@ class ComportamientoJugador : public Comportamiento {
       necesita_recarga = false;
       hay_recarga = false;
 
-      radio_son = 20;
+      planRecarga = false;
+
+      radio_son = 18;
       pinta_precipicios(mapaResultado, size);
 
     }
@@ -335,6 +337,8 @@ class ComportamientoJugador : public Comportamiento {
     bool stop;
     bool recargando, necesita_recarga, hay_recarga;
     bool plan_completo;
+    bool planJug;
+    bool planRecarga;
     int radio_son;
     // Funciones privadas
 
