@@ -296,6 +296,7 @@ class ComportamientoJugador : public Comportamiento {
       c_state.bikini_son = false;
       c_state.zapatillas_son = false;
 
+      ultima_accion = actIDLE;
       bien_situado = false;
       situando = false;
 
@@ -309,8 +310,10 @@ class ComportamientoJugador : public Comportamiento {
       hay_recarga = false;
 
       planRecarga = false;
+      planExplorar = false;
 
-      radio_son = 18;
+      vecesWhereIs = 0;
+      radio_son = 23;
       pinta_precipicios(mapaResultado, size);
 
     }
@@ -338,8 +341,12 @@ class ComportamientoJugador : public Comportamiento {
     bool recargando, necesita_recarga, hay_recarga;
     bool plan_completo;
     bool planJug;
+    bool planExplorar;
     bool planRecarga;
     int radio_son;
+    int vecesWhereIs;
+    Action ultima_accion;
+    vector<unsigned char> terreno_anterior;
     // Funciones privadas
 
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
