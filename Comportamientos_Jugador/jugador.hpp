@@ -313,7 +313,7 @@ class ComportamientoJugador : public Comportamiento {
       planExplorar = false;
 
       vecesWhereIs = 0;
-      radio_son = 23;
+      radio_son = 45;
       pinta_precipicios(mapaResultado, size);
 
     }

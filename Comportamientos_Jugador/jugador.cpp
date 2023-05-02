@@ -59,7 +59,7 @@ bool SonambuloEnVision(stateN0 st) {
 	return false;
 }
 
-unsigned char superficieEnUbi(const ubicacion &u, const vector<unsigned char> &superficie, const stateN0 &st){
+unsigned char SuperficieEnUbi(const ubicacion &u, const vector<unsigned char> &superficie, const stateN0 &st){
 
 	int radio = 4;
 	int i = st.jugador.f; int j = st.jugador.c;
@@ -103,6 +103,62 @@ unsigned char superficieEnUbi(const ubicacion &u, const vector<unsigned char> &s
 	}
 
 	return '_';
+}
+
+vector <unsigned char> PosAVision(const ubicacion &u, const vector<vector<unsigned char>> &mapa){
+	int i = u.f; int j = u.c;
+	int add;
+	int radio = 4;
+	Orientacion o = u.brujula;
+	vector <unsigned char> vision;
+
+	switch(o){
+		case este:	 	
+		case sur: 		add= 1;		break;
+		case norte: 	
+		case oeste: 	add=-1;		break;
+	}
+
+	if(o == norte or o == sur){
+		for (int k=0; k < radio; k++){
+			for(int l=k*k; l < (k+1)*(k+1); l++){
+				vision.push_back(mapa[i][j]);
+				j-=add;
+			}
+			j+= 2*(k+1)*add;
+			i+=add;
+		}
+	}
+
+	else if(o == este or o == oeste){
+		for (int k=0; k < radio; k++){
+			for(int l=k*k; l < (k+1)*(k+1); l++){
+				vision.push_back(mapa[i][j]);
+				i+=add;
+			}
+			i-= 2*(k+1)*add;
+			j+=add;
+		}
+	}
+
+	return vision;
+}
+
+template <typename T>
+bool Equals(const vector<T> &v1, const vector<T> &v2){
+	if(v1.size() != v2.size()) return false;
+	for(int i=0; i < v1.size(); i++){
+		if(v1[i] != v2[i]) return false;
+	}
+	return true;
+}
+
+bool BienSituado(const ubicacion &u, const vector<unsigned char> &vision, const vector<vector<unsigned char>> &mapa){
+	
+	vector<unsigned char> vision2 = PosAVision(u, mapa);
+
+	if(Equals(vision, vision2)) return true;
+	return false;
 }
 
 /** Devuelve si una ubicación en el mapa es transitable para el agente */
@@ -258,7 +314,7 @@ int coste(const stateN2 &st, const Action &act, const vector<vector<unsigned cha
 			return 2;
 			break;
 		case '?':
-			return 2;
+			return 1;
 			break;
 		default:
 			return 1;
@@ -302,7 +358,7 @@ int coste(const stateN3 &st, const Action &act, const vector<vector<unsigned cha
 				return 1;
 			break;
 		case '?':
-			return 2;
+			return 1;
 			break;
 		default:
 			return 1;
@@ -336,7 +392,7 @@ int coste(const stateN3 &st, const Action &act, const vector<vector<unsigned cha
 			return 2;
 			break;
 		case '?':
-			return 2;
+			return 1;
 			break;
 		default:
 			return 1;
@@ -891,7 +947,7 @@ int heuristicN4Son(const stateN3 &a, const ubicacion &b, const vector<vector<uns
 	
 	// int dist_jug = max(0, abs(a.jugador.f - a.sonambulo.f)-3 + abs(a.jugador.c - a.sonambulo.c)-3);
 	// int dist_obj = max(0, abs(a.jugador.f - b.f)-4 + abs(a.jugador.c - b.c)-4);
-	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 6);
+	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 7);
 	int dist_obj = max(0, dist_manhattan(a.jugador, b) - 7);
 	int dist_son = dist_max(a.sonambulo, b);
 
@@ -910,7 +966,7 @@ int heuristicN4Jug(const stateN3 &a, const ubicacion &b, const vector<vector<uns
 	// else
 		// return 0;
 	int coste_fin = 0;
-	if(a.sonambulo.f == b.f && a.sonambulo.c == b.c)
+	if(a.jugador.f == b.f && a.jugador.c == b.c)
 		coste_fin = coste(a, actFORWARD, mapa);
 	return dist_obj + coste_fin;
 }
@@ -1804,7 +1860,7 @@ bool RecalcularJug(const ubicacion &x, const vector<vector<unsigned char>> &mapa
 bool RecalcularSon(const stateN3 &x, const vector<vector<unsigned char>> &mapaRes, bool &bikini, bool &zapatillas, const vector<unsigned char> &superficie, bool planJug)
 {
 	ubicacion n_pos = NextCasilla(x.sonambulo);
-	unsigned char s = superficieEnUbi(n_pos, superficie, x);
+	unsigned char s = SuperficieEnUbi(n_pos, superficie, x);
 	bool res =  (mapaRes[n_pos.f][n_pos.c] == 'P' or mapaRes[n_pos.f][n_pos.c] == 'M' or 
 		   		(mapaRes[n_pos.f][n_pos.c] == 'A' and (!bikini or planJug) ) or 
 				(mapaRes[n_pos.f][n_pos.c] == 'B' and (!zapatillas or planJug))) or 
@@ -1881,6 +1937,14 @@ bool ComportamientoJugador::HayRecarga(){
 // Este es el método principal que se piden en la practica.
 // Tiene como entrada la información de los sensores y devuelve la acción a realizar.
 // Para ver los distintos sensores mirar fichero "comportamiento.hpp"
+
+ubicacion PuntoMedio(const ubicacion &a, const ubicacion &b){
+	ubicacion res;
+	res.f = (a.f + b.f)/2;
+	res.c = (a.c + b.c)/2;
+	return res;
+}
+
 Action ComportamientoJugador::think(Sensores sensores)
 {
 	Action accion = actIDLE;
@@ -1920,7 +1984,9 @@ Action ComportamientoJugador::think(Sensores sensores)
 		
 		// if(sensores.tiempo > 0 and sensores.tiempo < 1 and sensores.vida > 2900)
 		// 	radio_son = 5;
-		if(sensores.tiempo > 1 and sensores.tiempo < 150) 
+		if(sensores.tiempo < 100 and mapaResultado.size() > 75) 
+			radio_son = 100;
+		else if(sensores.tiempo > 100 and sensores.tiempo < 150) 
 			radio_son = 23;
 		else if(sensores.tiempo > 150 and sensores.tiempo < 230)
 			radio_son = 15;
@@ -1947,22 +2013,22 @@ Action ComportamientoJugador::think(Sensores sensores)
 			plan_completo = false;
 		}
 	
-		if(sensores.reset or sensores.colision){
+		if(sensores.reset){
 			plan.clear();
 			hayPlan = false;
 			bien_situado = false;
-			VisualizaPlan(c_state, plan);
 		}
-		else if(ultima_accion != actIDLE){
+		
+		if(ultima_accion != actIDLE){
 			c_state = apply(ultima_accion, c_state, mapaResultado);
 		}
 
-		// if(sensores.colision){
-
-		// }
-		// else{
-		// 	c_state = apply(accion, c_state, mapaResultado);
-		// }
+		if(sensores.colision){
+			plan.clear();
+			hayPlan = false;
+			bien_situado = BienSituado(c_state.jugador, sensores.terreno, mapaResultado);
+			// bien_situado = false;
+		}
 
 		if (hayPlan){
 
@@ -2006,6 +2072,10 @@ Action ComportamientoJugador::think(Sensores sensores)
 					planRecarga = false;
 				}
 
+				// if(stop and sensores.tiempo < 50){
+				// 	stop = false;
+				// 	plan = Nivel4Son(c_state, PuntoMedio(c_state.sonambulo, goal), mapaResultado, stop);
+				// }
 				if(stop)
 					plan = Nivel4Jug(c_state, goal, mapaResultado);
 				
@@ -2045,6 +2115,10 @@ Action ComportamientoJugador::think(Sensores sensores)
 					planRecarga = false;
 				}
 
+				// if(stop and sensores.tiempo < 50){
+				// 	stop = false;
+				// 	plan = Nivel4Son(c_state, PuntoMedio(c_state.sonambulo, goal), mapaResultado, stop);
+				// }
 				if(stop)
 					plan = Nivel4Jug(c_state, goal, mapaResultado);
 				
