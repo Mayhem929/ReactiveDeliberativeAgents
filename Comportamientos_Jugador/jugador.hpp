@@ -311,7 +311,7 @@ class ComportamientoJugador : public Comportamiento {
 
       planRecarga = false;
       planExplorar = false;
-
+      this->size = size;
       vecesWhereIs = 0;
       radio_son = 45;
       pinta_precipicios(mapaResultado, size);
@@ -343,6 +343,7 @@ class ComportamientoJugador : public Comportamiento {
     bool planJug;
     bool planExplorar;
     bool planRecarga;
+    int size;
     int radio_son;
     int vecesWhereIs;
     Action ultima_accion;

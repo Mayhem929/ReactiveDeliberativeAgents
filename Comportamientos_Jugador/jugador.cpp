@@ -947,15 +947,15 @@ int heuristicN4Son(const stateN3 &a, const ubicacion &b, const vector<vector<uns
 	
 	// int dist_jug = max(0, abs(a.jugador.f - a.sonambulo.f)-3 + abs(a.jugador.c - a.sonambulo.c)-3);
 	// int dist_obj = max(0, abs(a.jugador.f - b.f)-4 + abs(a.jugador.c - b.c)-4);
-	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 7);
+	int dist_jug = 6*max(0, dist_manhattan(a.jugador, a.sonambulo) - 6);
 	int dist_obj = max(0, dist_manhattan(a.jugador, b) - 7);
-	int dist_son = dist_max(a.sonambulo, b);
+	int dist_son = 3*dist_max(a.sonambulo, b);
 
 	int coste_fin = 0;
 	if(a.sonambulo.f == b.f && a.sonambulo.c == b.c)
 		coste_fin = coste(a, actSON_FORWARD, mapa);
 	
-	return dist_jug + dist_son + dist_obj ;
+	return dist_jug + dist_son + dist_obj;
 }
 
 int heuristicN4Jug(const stateN3 &a, const ubicacion &b, const vector<vector<unsigned char>> &mapa){
@@ -1405,7 +1405,7 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 			cout << "Nodos explorados: " << n << endl;
 			cout << "Coste actual: " << current_node.st.coste << endl;
 			cout << "Suma actual: " << current_node.st.suma << endl;
-			if(n>=1000000){
+			if(n>=1400000){
 				stop = true;
 			}
 		}
@@ -1982,18 +1982,56 @@ Action ComportamientoJugador::think(Sensores sensores)
 			return actIDLE;
 		}
 		
-		// if(sensores.tiempo > 0 and sensores.tiempo < 1 and sensores.vida > 2900)
+		// if(sensores.tiempo < 1 and sensores.vida > 2800)
 		// 	radio_son = 5;
-		if(sensores.tiempo < 100 and mapaResultado.size() > 75) 
-			radio_son = 100;
-		else if(sensores.tiempo > 100 and sensores.tiempo < 150) 
-			radio_son = 23;
-		else if(sensores.tiempo > 150 and sensores.tiempo < 230)
-			radio_son = 15;
-		else if(sensores.tiempo > 230 and sensores.tiempo < 270)
-			radio_son = 7;
-		else if(sensores.tiempo > 270)
-			radio_son = 2;
+		if(size >= 75){
+			if(sensores.tiempo < 100) 
+			radio_son = 75;
+			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+				radio_son = 50;
+			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+				radio_son = 25;
+			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+				radio_son = 8;
+			else if(sensores.tiempo > 270)
+				radio_son = 2;
+		}
+		else if(size >= 50){
+			if(sensores.tiempo < 100) 
+			radio_son = 50;
+			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+				radio_son = 35;
+			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+				radio_son = 15;
+			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+				radio_son = 5;
+			else if(sensores.tiempo > 270)
+				radio_son = 2;
+		}
+		else if(size >= 30){
+			if(sensores.tiempo < 100) 
+			radio_son = 25;
+			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+				radio_son = 20;
+			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+				radio_son = 15;
+			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+				radio_son = 5;
+			else if(sensores.tiempo > 270)
+				radio_son = 2;
+		}
+		else{
+			if(sensores.tiempo < 100) 
+			radio_son = 25;
+			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+				radio_son = 20;
+			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+				radio_son = 15;
+			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+				radio_son = 5;
+			else if(sensores.tiempo > 270)
+				radio_son = 2;
+		}
 
 		if ((hayPlan and plan.size()== 0 and bien_situado) or ((c_state.jugador.f == goal.f and c_state.jugador.c == goal.c)
 											  or (c_state.sonambulo.f == goal.f and c_state.sonambulo.c == goal.c)) ){
