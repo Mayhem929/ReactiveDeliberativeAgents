@@ -311,8 +311,13 @@ class ComportamientoJugador : public Comportamiento {
 
       planRecarga = false;
       planExplorar = false;
+      plan_completo = false;
+
+      sonambulo_accesible = true;
+
       this->size = size;
       vecesWhereIs = 0;
+      situando_cont = 0;
       radio_son = 45;
       pinta_precipicios(mapaResultado, size);
 
@@ -343,9 +348,11 @@ class ComportamientoJugador : public Comportamiento {
     bool planJug;
     bool planExplorar;
     bool planRecarga;
+    bool sonambulo_accesible;
     int size;
     int radio_son;
     int vecesWhereIs;
+    int situando_cont;
     Action ultima_accion;
     vector<unsigned char> terreno_anterior;
     // Funciones privadas

@@ -148,7 +148,7 @@ template <typename T>
 bool Equals(const vector<T> &v1, const vector<T> &v2){
 	if(v1.size() != v2.size()) return false;
 	for(int i=0; i < v1.size(); i++){
-		if(v1[i] != v2[i]) return false;
+		if((v1[i] != v2[i]) and (v1[i] != '?' and v2[i] != '?')) return false;
 	}
 	return true;
 }
@@ -314,7 +314,7 @@ int coste(const stateN2 &st, const Action &act, const vector<vector<unsigned cha
 			return 2;
 			break;
 		case '?':
-			return 1;
+			return 2;
 			break;
 		default:
 			return 1;
@@ -358,7 +358,7 @@ int coste(const stateN3 &st, const Action &act, const vector<vector<unsigned cha
 				return 1;
 			break;
 		case '?':
-			return 1;
+			return 2;
 			break;
 		default:
 			return 1;
@@ -392,7 +392,7 @@ int coste(const stateN3 &st, const Action &act, const vector<vector<unsigned cha
 			return 2;
 			break;
 		case '?':
-			return 1;
+			return 2;
 			break;
 		default:
 			return 1;
@@ -947,9 +947,9 @@ int heuristicN4Son(const stateN3 &a, const ubicacion &b, const vector<vector<uns
 	
 	// int dist_jug = max(0, abs(a.jugador.f - a.sonambulo.f)-3 + abs(a.jugador.c - a.sonambulo.c)-3);
 	// int dist_obj = max(0, abs(a.jugador.f - b.f)-4 + abs(a.jugador.c - b.c)-4);
-	int dist_jug = 6*max(0, dist_manhattan(a.jugador, a.sonambulo) - 6);
+	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 6);
 	int dist_obj = max(0, dist_manhattan(a.jugador, b) - 7);
-	int dist_son = 3*dist_max(a.sonambulo, b);
+	int dist_son = 4*dist_max(a.sonambulo, b);
 
 	int coste_fin = 0;
 	if(a.sonambulo.f == b.f && a.sonambulo.c == b.c)
@@ -1459,7 +1459,8 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 			
 			auto it = explored.find(child_forward);
 
-			if (it==explored.end() and child_forward.st.suma < solution_node.st.suma) {
+			if (it==explored.end() and child_forward.st.suma < solution_node.st.suma and
+				(SonambuloEnVision(child_forward.st) or dist_max(child_forward.st.jugador, child_forward.st.sonambulo) < 3)) {
 				child_forward.accion = actFORWARD;
 				frontier.push(child_forward);
 			}
@@ -1479,7 +1480,8 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 
 			it = explored.find(child_turnl);
 
-			if (it==explored.end() and child_turnl.st.suma < solution_node.st.suma) {
+			if (it==explored.end() and child_turnl.st.suma < solution_node.st.suma and
+				(SonambuloEnVision(child_turnl.st) or dist_max(child_turnl.st.jugador, child_turnl.st.sonambulo) < 3)) {
 				child_turnl.accion = actTURN_L;
 				frontier.push(child_turnl);
 			}
@@ -1499,7 +1501,8 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 			
 			it = explored.find(child_turnr);
 
-			if (it==explored.end() and child_turnr.st.suma < solution_node.st.suma) {
+			if (it==explored.end() and child_turnr.st.suma < solution_node.st.suma and
+				(SonambuloEnVision(child_turnr.st) or dist_max(child_turnr.st.jugador, child_turnr.st.sonambulo) < 3)) {
 				child_turnr.accion = actTURN_R;
 				frontier.push(child_turnr);
 			}
@@ -1587,6 +1590,161 @@ list<Action> Nivel4Son(const stateN3 &inicio, const ubicacion &final,
 		plan.push_front(actIDLE);
 		return plan;
 	}
+}
+
+list<Action> VeASonambulo(const stateN2 &inicio, const vector<vector<unsigned char>> &mapa, bool &sonambulo_visible){
+
+	nodeN2 current_node;
+	nodeN2 solution_node;
+	priority_queue<nodeN2, vector<nodeN2>, CompareN2> frontier;
+	set<nodeN2> explored;
+	list<Action> plan;
+	int n = 0;
+	solution_node.st.coste = numeric_limits<int>::max();
+	current_node.st = inicio;
+	current_node.padre = nullptr;
+	solution_node.padre = nullptr;
+	bool SolutionFound = (SonambuloEnVision(current_node.st));
+	if(SolutionFound)
+		return plan;
+
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'K'){
+		current_node.st.bikini = true;
+		current_node.st.zapatillas = false;
+	}
+	if(mapa[inicio.jugador.f][inicio.jugador.c] == 'D'){
+		current_node.st.bikini = false;
+		current_node.st.zapatillas = true;
+	}
+
+
+	frontier.push(current_node);
+
+	while (!frontier.empty() && !SolutionFound) {
+		frontier.pop();
+		explored.insert(current_node);
+		n++;
+		if(n%100000==0){
+			cout << "Nodos explorados: " << n << endl;
+			cout << "Coste actual: " << current_node.st.coste << endl;
+		}
+		// Generar hijo actFORWARD
+
+		nodeN2 child_forward;
+		child_forward.padre = make_shared<nodeN2>(current_node);
+		child_forward.st = apply(actFORWARD, current_node.st, mapa);
+ 		auto it = explored.find(child_forward);
+
+		if (dist_max(child_forward.st.jugador, child_forward.st.sonambulo) < 3 or 
+			(dist_manhattan(child_forward.st.jugador, child_forward.st.sonambulo) <= 4 and SonambuloEnVision(child_forward.st))) {
+			child_forward.accion = actFORWARD;
+			current_node = child_forward;
+			if(current_node.st.coste <= solution_node.st.coste){
+				solution_node = current_node;	
+			}
+
+			if(frontier.top().st.coste > solution_node.st.coste){
+				SolutionFound = true;
+			}
+			
+		} else if (it==explored.end() and child_forward.st.coste < solution_node.st.coste) {
+			child_forward.accion = actFORWARD;
+			frontier.push(child_forward);
+		}
+		else if(it!=explored.end())
+			if (it->st.coste > child_forward.st.coste){
+				explored.erase(it);
+				child_forward.accion = actFORWARD;
+				frontier.push(child_forward);
+		}
+
+		if (!SolutionFound) {
+			// Generar hijo actTURN_L
+			nodeN2 child_turnl;
+			child_turnl.padre = make_shared<nodeN2>(current_node);
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			auto it = explored.find(child_turnl);
+			
+			if (dist_max(child_turnl.st.jugador, child_turnl.st.sonambulo) < 3 or
+				(dist_manhattan(child_turnl.st.jugador, child_turnl.st.sonambulo) <= 4 and SonambuloEnVision(child_turnl.st))) {
+				child_turnl.accion = actTURN_L;
+				current_node = child_turnl;
+				if(current_node.st.coste <= solution_node.st.coste){
+					solution_node = current_node;	
+				}
+
+				if(frontier.top().st.coste > solution_node.st.coste){
+					SolutionFound = true;
+				}
+			}
+			else if (explored.find(child_turnl)==explored.end() && child_turnl.st.coste < solution_node.st.coste){
+				child_turnl.accion = actTURN_L;
+				frontier.push(child_turnl);
+			}
+			else if(it!=explored.end())
+				if (it->st.coste > child_turnl.st.coste){
+					explored.erase(it);
+					child_turnl.accion = actTURN_L;
+					frontier.push(child_turnl);
+			}
+
+			// Generar hijo actTURN_R
+			nodeN2 child_turnr;
+			child_turnr.padre = make_shared<nodeN2>(current_node);
+			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			it = explored.find(child_turnr);
+			if (dist_max(child_turnr.st.jugador, child_turnr.st.sonambulo) < 3 or 
+				(dist_manhattan(child_turnr.st.jugador, child_turnr.st.sonambulo) <= 4 and SonambuloEnVision(child_turnr.st))){
+				child_turnr.accion = actTURN_R;
+				current_node = child_turnr;
+				if(current_node.st.coste <= solution_node.st.coste){
+					solution_node = current_node;	
+				}
+
+				if(frontier.top().st.coste > solution_node.st.coste){
+					SolutionFound = true;
+				}
+			}
+			else if (explored.find(child_turnr)==explored.end() && child_turnr.st.coste < solution_node.st.coste){
+				child_turnr.accion = actTURN_R;
+				frontier.push(child_turnr);
+			}
+			else if(it!=explored.end())
+				if (it->st.coste > child_turnr.st.coste){
+					explored.erase(it);
+					child_turnr.accion = actTURN_R;
+					frontier.push(child_turnr);
+			}
+		}
+
+		if (!SolutionFound && !frontier.empty()){
+			current_node = frontier.top();
+			while (!frontier.empty() && explored.find(current_node)!=explored.end()) {
+				frontier.pop();
+				current_node = frontier.top();
+			}
+		}
+	}
+
+	if(!SonambuloEnVision(solution_node.st)) sonambulo_visible = false;
+
+  	plan.push_front(solution_node.accion);
+	if(solution_node.padre != nullptr)
+		while(solution_node.padre->padre != nullptr) {
+			solution_node = *solution_node.padre;
+			plan.push_front(solution_node.accion);		
+		}
+	
+
+	
+	cout << "Nodos explorados: " << n << endl;
+	cout << "Coste final: " << solution_node.st.coste << endl;
+	cout << "Bateria restante: " << 3000 - solution_node.st.coste << endl;
+	
+	
+
+	return plan;
+
 }
 
 list<Action> VeARecarga(const stateN2 &inicio, const vector<vector<unsigned char>> &mapa){
@@ -1938,13 +2096,6 @@ bool ComportamientoJugador::HayRecarga(){
 // Tiene como entrada la información de los sensores y devuelve la acción a realizar.
 // Para ver los distintos sensores mirar fichero "comportamiento.hpp"
 
-ubicacion PuntoMedio(const ubicacion &a, const ubicacion &b){
-	ubicacion res;
-	res.f = (a.f + b.f)/2;
-	res.c = (a.c + b.c)/2;
-	return res;
-}
-
 Action ComportamientoJugador::think(Sensores sensores)
 {
 	Action accion = actIDLE;
@@ -1954,6 +2105,10 @@ Action ComportamientoJugador::think(Sensores sensores)
 	// Hay que recalcular el plan cuando los sensores den colision
 
 	if (sensores.nivel == 4){
+		
+	
+		if (sensores.tiempo > 290)
+			return actIDLE;
 
 		if(2*sensores.bateria < sensores.vida) 
 			necesita_recarga = true;
@@ -1961,7 +2116,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 		if(necesita_recarga and !hay_recarga){
 			hay_recarga = HayRecarga();
-			if(!hay_recarga)
+			if(!hay_recarga and 4*sensores.bateria < sensores.vida)
 				planExplorar = true;
 			else
 				planExplorar = false;
@@ -1972,7 +2127,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 			// plan.clear();
 		}
 
-		if(sensores.bateria > 2*sensores.vida or sensores.bateria == 3000){
+		if(sensores.bateria > 1.7*sensores.vida or sensores.bateria == 3000){
 			necesita_recarga = false;
 			recargando = false;
 		}
@@ -1981,57 +2136,57 @@ Action ComportamientoJugador::think(Sensores sensores)
 			terreno_anterior = sensores.terreno;
 			return actIDLE;
 		}
-		
+
 		// if(sensores.tiempo < 1 and sensores.vida > 2800)
 		// 	radio_son = 5;
-		if(size >= 75){
-			if(sensores.tiempo < 100) 
-			radio_son = 75;
-			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
-				radio_son = 50;
-			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
-				radio_son = 25;
-			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
-				radio_son = 8;
-			else if(sensores.tiempo > 270)
-				radio_son = 2;
-		}
-		else if(size >= 50){
-			if(sensores.tiempo < 100) 
-			radio_son = 50;
-			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
-				radio_son = 35;
-			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
-				radio_son = 15;
-			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
-				radio_son = 5;
-			else if(sensores.tiempo > 270)
-				radio_son = 2;
-		}
-		else if(size >= 30){
-			if(sensores.tiempo < 100) 
-			radio_son = 25;
-			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
-				radio_son = 20;
-			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
-				radio_son = 15;
-			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
-				radio_son = 5;
-			else if(sensores.tiempo > 270)
-				radio_son = 2;
-		}
-		else{
-			if(sensores.tiempo < 100) 
-			radio_son = 25;
-			else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
-				radio_son = 20;
-			else if(sensores.tiempo > 180 and sensores.tiempo < 230)
-				radio_son = 15;
-			else if(sensores.tiempo > 230 and sensores.tiempo < 270)
-				radio_son = 5;
-			else if(sensores.tiempo > 270)
-				radio_son = 2;
-		}
+		// if(size >= 75){
+		// 	if(sensores.tiempo < 100) 
+		// 	radio_son = 75;
+		// 	else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+		// 		radio_son = 50;
+		// 	else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+		// 		radio_son = 25;
+		// 	else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+		// 		radio_son = 8;
+		// 	else if(sensores.tiempo > 270)
+		// 		radio_son = 2;
+		// }
+		// else if(size >= 50){
+		// 	if(sensores.tiempo < 100) 
+		// 	radio_son = 50;
+		// 	else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+		// 		radio_son = 35;
+		// 	else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+		// 		radio_son = 15;
+		// 	else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+		// 		radio_son = 5;
+		// 	else if(sensores.tiempo > 270)
+		// 		radio_son = 2;
+		// }
+		// else if(size >= 30){
+		// 	if(sensores.tiempo < 100) 
+		// 	radio_son = 25;
+		// 	else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+		// 		radio_son = 20;
+		// 	else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+		// 		radio_son = 15;
+		// 	else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+		// 		radio_son = 5;
+		// 	else if(sensores.tiempo > 270)
+		// 		radio_son = 2;
+		// }
+		// else{
+		// 	if(sensores.tiempo < 100) 
+		// 	radio_son = 25;
+		// 	else if(sensores.tiempo > 100 and sensores.tiempo < 180) 
+		// 		radio_son = 20;
+		// 	else if(sensores.tiempo > 180 and sensores.tiempo < 230)
+		// 		radio_son = 15;
+		// 	else if(sensores.tiempo > 230 and sensores.tiempo < 270)
+		// 		radio_son = 5;
+		// 	else if(sensores.tiempo > 270)
+		// 		radio_son = 2;
+		// }
 
 		if ((hayPlan and plan.size()== 0 and bien_situado) or ((c_state.jugador.f == goal.f and c_state.jugador.c == goal.c)
 											  or (c_state.sonambulo.f == goal.f and c_state.sonambulo.c == goal.c)) ){
@@ -2043,6 +2198,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 
 			if(plan_completo){
 				bien_situado = false;
+				sonambulo_accesible = true;
 			}
 			plan_completo = true;
 			stop = false;
@@ -2061,28 +2217,50 @@ Action ComportamientoJugador::think(Sensores sensores)
 			c_state = apply(ultima_accion, c_state, mapaResultado);
 		}
 
-		if(sensores.colision){
+		if(sensores.colision or situando_cont > 0){
 			plan.clear();
 			hayPlan = false;
-			bien_situado = BienSituado(c_state.jugador, sensores.terreno, mapaResultado);
-			// bien_situado = false;
+			if(BienSituado(c_state.jugador, sensores.terreno, mapaResultado)){
+				situando_cont++;
+				ultima_accion = actTURN_L;
+				if(situando_cont == 4){
+					situando_cont = 0;
+					situando = false;
+					bien_situado = true;
+				}
+				else return actTURN_L;
+			}
+				
+			else
+				bien_situado = false;
+			
+
 		}
 
 		if (hayPlan){
-
+			
 			accion = plan.front();
+			plan.pop_front();
+			Action siguiente_accion = plan.front();
+			plan.push_front(accion);
+
+			stateN3 next_st = applyN4(accion, c_state, mapaResultado, goal);
+
 			PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado);
+			
 			if((accion == actFORWARD and RecalcularJug(NextCasilla(c_state.jugador), mapaResultado, c_state.bikini, c_state.zapatillas, sensores.superficie[2], planJug))
 				or (necesita_recarga and sensores.bateria < 200 and !planRecarga)){
 				plan.clear();
 				hayPlan = false;
-				// PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado, true);
 			}
-			if((accion == actSON_FORWARD and RecalcularSon(c_state, mapaResultado, c_state.bikini_son, c_state.zapatillas_son, sensores.superficie, planJug))
+			else if((accion == actSON_FORWARD and RecalcularSon(c_state, mapaResultado, c_state.bikini_son, c_state.zapatillas_son, sensores.superficie, planJug))
 				or (necesita_recarga and sensores.bateria < 200 and !planRecarga)){
 				plan.clear();
 				hayPlan = false;
-				// PonerTerrenoEnMatriz(sensores.terreno, sensores.superficie, c_state, mapaResultado, true);
+			}
+			else if(siguiente_accion == actSON_FORWARD and RecalcularSon(next_st, mapaResultado, next_st.bikini_son, next_st.zapatillas_son,  sensores.superficie, planJug)){
+				plan.clear();
+				hayPlan = false;
 			}
 		}
 		
@@ -2099,22 +2277,33 @@ Action ComportamientoJugador::think(Sensores sensores)
 					plan = VeARecarga(c_state, mapaResultado);
 					planRecarga = true;
 					planJug = true;
-				}else if(dist_euclidea(c_state.sonambulo, goal) > radio_son or stop){
-					plan = Nivel4Jug(c_state, goal, mapaResultado);
-					planJug = true;
-					planRecarga = false;
-				}
-				else {
+				} else if ((SonambuloEnVision(c_state) or dist_max(c_state.jugador, c_state.sonambulo) < 4) and sensores.tiempo < 270){
 					plan = Nivel4Son(c_state, goal, mapaResultado, stop);
 					planJug = false;
 					planRecarga = false;
+				} else if(sonambulo_accesible and sensores.tiempo < 270){
+					plan = VeASonambulo(c_state, mapaResultado, sonambulo_accesible);
+					planJug = true;
+					planRecarga = false;
 				}
+				
+				// if(dist_euclidea(c_state.sonambulo, goal) > radio_son or stop){
+				// 	plan = Nivel4Jug(c_state, goal, mapaResultado);
+				// 	planJug = true;
+				// 	planRecarga = false;
+				// }
+				// else {
+				// 	plan = Nivel4Son(c_state, goal, mapaResultado, stop);
+				// 	planJug = false;
+				// 	planRecarga = false;
+				// }
 
 				// if(stop and sensores.tiempo < 50){
 				// 	stop = false;
 				// 	plan = Nivel4Son(c_state, PuntoMedio(c_state.sonambulo, goal), mapaResultado, stop);
 				// }
-				if(stop)
+
+				if(stop or !sonambulo_accesible or sensores.tiempo > 270)
 					plan = Nivel4Jug(c_state, goal, mapaResultado);
 				
 				hayPlan = true;
@@ -2142,22 +2331,21 @@ Action ComportamientoJugador::think(Sensores sensores)
 					plan = VeARecarga(c_state, mapaResultado);
 					planRecarga = true;
 					planJug = true;
-				}else if(dist_euclidea(c_state.sonambulo, goal) > radio_son or stop){
-					plan = Nivel4Jug(c_state, goal, mapaResultado);
-					planJug = true;
-					planRecarga = false;
-				}
-				else {
+				} else if (SonambuloEnVision(c_state) or dist_max(c_state.jugador, c_state.sonambulo) < 4){
 					plan = Nivel4Son(c_state, goal, mapaResultado, stop);
 					planJug = false;
 					planRecarga = false;
+				} else if(sonambulo_accesible){
+					plan = VeASonambulo(c_state, mapaResultado, sonambulo_accesible);
+					planJug = true;
+					planRecarga = false;
 				}
-
+				
 				// if(stop and sensores.tiempo < 50){
 				// 	stop = false;
 				// 	plan = Nivel4Son(c_state, PuntoMedio(c_state.sonambulo, goal), mapaResultado, stop);
 				// }
-				if(stop)
+				if(stop or !sonambulo_accesible or sensores.tiempo > 270)
 					plan = Nivel4Jug(c_state, goal, mapaResultado);
 				
 				hayPlan = true;
