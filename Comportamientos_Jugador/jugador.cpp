@@ -949,7 +949,7 @@ int heuristicN4Son(const stateN3 &a, const ubicacion &b, const vector<vector<uns
 	// int dist_obj = max(0, abs(a.jugador.f - b.f)-4 + abs(a.jugador.c - b.c)-4);
 	int dist_jug = max(0, dist_manhattan(a.jugador, a.sonambulo) - 6);
 	int dist_obj = max(0, dist_manhattan(a.jugador, b) - 7);
-	int dist_son = 4*dist_max(a.sonambulo, b);
+	int dist_son = 3*dist_max(a.sonambulo, b);
 
 	int coste_fin = 0;
 	if(a.sonambulo.f == b.f && a.sonambulo.c == b.c)
