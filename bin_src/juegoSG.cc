@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     // 8,9 -> destino2
     // ...
     monitor.setMapa(argv[1]);
+    srand(atoi(argv[2]));
     monitor.startGame(atoi(argv[3]));
 
     ifstream ifile;
@@ -99,12 +100,12 @@ int main(int argc, char **argv)
     monitor.inicializar(atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), atoi(argv[2]));
     monitor.get_entidad(0)->setOrientacion(static_cast<Orientacion>(atoi(argv[6])));
     monitor.get_entidad(0)->setBateria(3000);
-    monitor.get_entidad(0)->Cogio_Bikini(false);
-    monitor.get_entidad(0)->Cogio_Zapatillas(false);
+    //monitor.get_entidad(0)->Cogio_Bikini(false);
+    //monitor.get_entidad(0)->Cogio_Zapatillas(false);
     monitor.get_entidad(1)->setOrientacion(static_cast<Orientacion>(atoi(argv[9])));
     monitor.get_entidad(1)->setBateria(3000);
-    monitor.get_entidad(1)->Cogio_Bikini(false);
-    monitor.get_entidad(1)->Cogio_Zapatillas(false);
+    //monitor.get_entidad(1)->Cogio_Bikini(false);
+    //monitor.get_entidad(1)->Cogio_Zapatillas(false);
     monitor.setPasos(3000);
     monitor.setRetardo(0);
 

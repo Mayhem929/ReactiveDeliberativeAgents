@@ -143,6 +143,14 @@ void MonitorJuego::put_active_objetivos(int number)
     for (int i = 0; i < number; i++)
     {
       auto it = objetivos.begin();
+      if(this->get_entidades()->size() > 1){
+      while((this->get_entidad(0)->getFil() == it->first and this->get_entidad(0)->getCol() == it->second) or
+            (this->get_entidad(1)->getFil() == it->first and this->get_entidad(1)->getCol() == it->second))
+        {
+          objetivos.erase(objetivos.begin());
+          it = objetivos.begin();
+        }
+      }
       v.push_back(it->first);
       v.push_back(it->second);
       objetivos.erase(objetivos.begin());
@@ -362,7 +370,7 @@ void MonitorJuego::inicializar(int pos_filaJ, int pos_colJ, int brujJ, int pos_f
         pos_colO = aleatorio(getMapa()->getNCols() - 1);
         celdaRand = getMapa()->getCelda(pos_filaO, pos_colO);
       } while ((celdaRand == 'P') or (celdaRand == 'M') or (getMapa()->entidadEnCelda(pos_filaO, pos_colO) != '_'));
-      nueva_entidad(new Entidad(npc, aldeano, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Aldeano3D(""), new ComportamientoAldeano(), 0, objetivosActivos, 3000));
+      nueva_entidad(new Entidad(npc, aldeano, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Aldeano3D(""), new ComportamientoAldeano(), 1, objetivosActivos, 3000));
     }
 
     for (int i = 0; i < nlobos; i++)
@@ -373,7 +381,7 @@ void MonitorJuego::inicializar(int pos_filaJ, int pos_colJ, int brujJ, int pos_f
         pos_colO = aleatorio(getMapa()->getNCols() - 1);
         celdaRand = getMapa()->getCelda(pos_filaO, pos_colO);
       } while ((celdaRand == 'P') or (celdaRand == 'M') or (getMapa()->entidadEnCelda(pos_filaO, pos_colO) != '_'));
-      nueva_entidad(new Entidad(npc, lobo, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Perro3D, new ComportamientoPerro(), 0, objetivosActivos, 3000));
+      nueva_entidad(new Entidad(npc, lobo, static_cast<Orientacion>(aleatorio(7)), pos_filaO, pos_colO, new Perro3D, new ComportamientoPerro(), 1, objetivosActivos, 3000));
     }
   }
 
