@@ -1,5 +1,5 @@
 # Deliberative agents
-## 2<sup>nd<sup> practice of *Artificial Intelligence*, 2022/2023
+## 2<sup>nd</sup> practice of *Artificial Intelligence*, 2022/2023
 
 This practice consists of the design and implementation of a reactive/deliberative agent capable of perceiving the environment and acting considering a representation of the consequences of its actions and following a search process.
 
