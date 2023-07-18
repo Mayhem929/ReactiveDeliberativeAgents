@@ -1,5 +1,5 @@
 # Deliberative agents
-## 2<sup>nd</sup> practice of *Artificial Intelligence*, 2022/2023
+## My personal solution to the 2<sup>nd</sup> practice of *Artificial Intelligence*, 2022/2023
 
 ![image](https://github.com/Mayhem929/practica2/assets/76180710/544a850f-1e2b-4ac8-8f3d-d132505e4885)
 
