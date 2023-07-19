@@ -55,7 +55,8 @@ In this final level at the start the map or even the position of the agents is u
 The teachers made a [telegram bot](https://github.com/jlsuarezdiaz/IA-BOT-UGR-23) in order to test our AIs on some test maps, and would give points based on how many levels it passed from 1 to 3, and for level 4 based on how many objectives our AI could accomplish in each test map. They even made a leaderboard so that we could see how other students were doing. In the end, my AI got first place among all the students that took part in the competition and I got awarded some cool badges :D
 
 
-![image](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/03813056-f631-41ec-97c9-ed10054c0a9a) ![image](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/37a5b655-823a-4d44-9cda-2861db873f14) ![image](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/8664948f-7f86-4579-9249-494215b2e6a4)
+![LEADERBOARD_P2_-_1ER_PUESTO_GENERAL](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/483b842c-0ead-499b-921e-6785cb5a5c58) ![LEADERBOARD_P2_-_1ER_PUESTO_GRUPO](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/080e2cb3-3454-4be7-9598-dd47574151ca) ![LEADERBOARD_P2_-_1ER_PUESTO_SUBGRUPO](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/b146bf57-37e3-4fbf-ad3c-42a6db9bdf2a)
+
 
 
 ---
