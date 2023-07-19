@@ -1,4 +1,4 @@
-# Deliberative agents
+# Reactive/Deliberative agents
 ## My personal solution to the 2<sup>nd</sup> practice of *Artificial Intelligence*, 2022/2023
 
 ![image](https://github.com/Mayhem929/ReactiveDeliberativeAgents/assets/76180710/ed0eda4c-2914-456b-8171-911f3c350dbf)
