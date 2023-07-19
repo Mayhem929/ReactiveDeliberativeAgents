@@ -66,6 +66,6 @@ The base sofware was made by the AI department in UGR. [ugr-ccia-IA](https://git
 
 I, Adrián Jaén Fuentes, implemented the files jugador.cpp and jugador.hpp.
 
-Also, big thanks to my teachers [@rbnuria](https://github.com/rbnuria), who helped me helped me through the practice and [@jlsuarezdiaz](https://github.com/jlsuarezdiaz), who developed the telegram bot for the students to test their code. 
+Also, big thanks to my teachers [@rbnuria](https://github.com/rbnuria), who helped me through the practice and [@jlsuarezdiaz](https://github.com/jlsuarezdiaz), who developed the telegram bot for the students to test their code. 
 
 
